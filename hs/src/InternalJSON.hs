@@ -6,6 +6,7 @@ module InternalJSON where
 
 import GHC.Generics
 import Data.Aeson
+import Data.Aeson.Types
 import Data.Text
 
 {- -
@@ -59,8 +60,12 @@ data Move = MvClaim { claim :: Claim }
           | MvPass { pass :: Punter}
           deriving (Generic, Show)
 
-instance ToJSON Move
-instance FromJSON Move
+instance ToJSON Move where
+  toJSON = genericToJSON (defaultOptions { sumEncoding = UntaggedValue  })
+  
+instance FromJSON Move where
+  parseJSON = genericParseJSON (defaultOptions { sumEncoding = UntaggedValue  })
+
 
 data Punter = Punter { punter :: PunterId } deriving (Generic, Show)
 
