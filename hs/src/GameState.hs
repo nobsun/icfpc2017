@@ -31,7 +31,7 @@ mine :: SiteLabel
 mine = True
 
 initGameState :: Setup -> GameState
-initGameState (Setup spunter spunters smap) = GameState
+initGameState (Setup spunter spunters smap setting) = GameState
   { punter = spunter
   , punters = spunters
   , graph = inigraph smap

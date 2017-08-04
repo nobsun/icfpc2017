@@ -40,6 +40,19 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
+data Settings = Settings { futures :: Bool } deriving (Generic, Show)
+type Futures = [Future]
+
+data Future = Future { source :: SiteId
+                     , target :: SiteId
+                     } deriving (Generic, Show)
+
+instance ToJSON Settings
+instance FromJSON Settings
+
+instance ToJSON Future
+instance FromJSON Future
+
 data Site = Site { id :: SiteId } deriving (Generic, Show)
 data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show)
 
