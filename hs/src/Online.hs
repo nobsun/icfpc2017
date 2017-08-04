@@ -24,6 +24,7 @@ instance FromJSON HandshakeServer
 
 -- Online: Setup
 
+{- -
 data Setup = Setup
   { punter :: PunterId
   , punters :: Int
@@ -32,6 +33,19 @@ data Setup = Setup
 
 data Ready = ReadyOn
   { ready :: PunterId } deriving (Generic, Show)
+-- -}
+
+data Setup = Setup
+  { punter :: PunterId
+  , punters :: Int
+  , map :: Map
+  , setting :: Settings
+  } deriving (Generic, Show)
+
+data Ready = ReadyOn
+  { ready :: PunterId
+  , futures :: Futures
+  } deriving (Generic, Show)
 
 instance ToJSON Setup
 instance ToJSON Ready
