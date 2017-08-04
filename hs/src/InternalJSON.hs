@@ -12,7 +12,7 @@ type PunterId = Int
 
 data Map = Map
   { sites :: [Site]
-  , revers :: [River]
+  , rivers :: [River]
   , mines :: [SiteId]
   } deriving (Generic, Show)
 
