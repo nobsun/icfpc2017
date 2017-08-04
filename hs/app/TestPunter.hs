@@ -39,8 +39,11 @@ main = do
         )
   where
     loop h pid = do
-      putStrLn "loop"
       token <- fmap B.pack (input h)
+{- dummy -}
+      output h (MvPass{pass=Punter pid})
+      loop h pid
+{- not work
       case decode token :: Maybe PrevMoves of
          Just movest -> do
            output h (MvPass{pass=Punter pid})
@@ -52,6 +55,7 @@ main = do
              Nothing -> do
                putStrLn $ "fail to parse JSON: "++(B.unpack token)
                hFlush stdout
+-}
 
 output :: ToJSON a => Handle -> a -> IO ()
 output h x = do
@@ -62,7 +66,6 @@ output h x = do
 
 input :: Handle -> IO String
 input h = do
-  putStrLn "input"
   len <- getLength h []
   token <- replicateM len (hGetChar h)
   putStrLn ("<- " ++ token)
@@ -70,9 +73,7 @@ input h = do
   return token
   where
     getLength h cs = do
-      putStrLn "getChar"
       c <- hGetChar h
-      putStrLn $ "getChar: " ++ [c]
       if isDigit c then getLength h (c:cs) else return (read (reverse cs))
 
 getPunterId :: String -> Int
