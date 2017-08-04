@@ -45,7 +45,7 @@ data Moves = Moves
 instance ToJSON Moves
 instance FromJSON Moves
 
-data Move = MvCaim { claim :: Claim }
+data Move = MvClaim { claim :: Claim }
           | MvPass { pass :: Punter}
           deriving (Generic, Show)
 
