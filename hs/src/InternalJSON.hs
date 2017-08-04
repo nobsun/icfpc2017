@@ -18,6 +18,14 @@ instance ToJSON HandshakeServer
 instance FromJSON HandshakePunter
 instance FromJSON HandshakeServer
 
+data Setup = Setup { punter :: PunterId, punters :: Int, map :: Map } deriving (Generic, Show)
+data Ready = Ready { ready :: PunterId } deriving (Generic, Show)
+
+instance ToJSON Setup
+instance ToJSON Ready
+instance FromJSON Setup
+instance FromJSON Ready
+
 type PunterId = Int
 
 data Map = Map
