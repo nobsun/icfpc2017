@@ -1,0 +1,71 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+
+module InternalJSON where
+
+import GHC.Generics
+import Data.Aeson
+import Data.Text
+
+type PunterId = Int
+
+data Map = Map
+  { sites :: [Site]
+  , revers :: [River]
+  , mines :: [SiteId]
+  } deriving (Generic, Show)
+
+instance ToJSON Map
+instance FromJSON Map
+
+data Site = Site { id :: SiteId } deriving (Generic, Show)
+data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show)
+
+instance ToJSON Site
+instance ToJSON River
+instance FromJSON Site
+instance FromJSON River
+
+type SiteId = Int
+
+data Moves = Moves
+  { moves :: [Move] } deriving (Generic, Show)
+
+instance ToJSON Moves
+instance FromJSON Moves
+
+data Move = MvCaim { claim :: Claim }
+          | MvPass { pass :: Punter}
+          deriving (Generic, Show)
+
+instance ToJSON Move
+instance FromJSON Move
+
+data Punter = Punter { punter :: PunterId } deriving (Generic, Show)
+
+instance ToJSON Punter
+instance FromJSON Punter
+
+data Claim = Claim
+  { punter :: PunterId
+  , source :: SiteId
+  , target :: SiteId
+  } deriving (Generic, Show)
+
+instance ToJSON Claim
+instance FromJSON Claim
+
+data Stop = Stop { moves :: [Move]
+                 , scores :: [Score]
+                 } deriving (Generic, Show)
+
+instance ToJSON Stop
+instance FromJSON Stop
+
+data Score = Score { punter :: PunterId
+                   , score :: Int
+                   } deriving (Generic, Show)
+
+instance ToJSON Score
+instance FromJSON Score
