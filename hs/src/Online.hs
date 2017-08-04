@@ -12,40 +12,45 @@ import InternalJSON
 
 -- Online: Handshake
 
-data HandshakePS = HandshakePS { me :: Text } deriving (Generic, Show)
-data HandshakeSP = HandshakeSP { you :: Text } deriving (Generic, Show)
+type Name = Text
 
-instance ToJSON HandshakePS
-instance ToJSON HandshakeSP
-instance FromJSON HandshakePS
-instance FromJSON HandshakeSP
+data HandshakePunter = HandshakePunter { me :: Name } deriving (Generic, Show)
+data HandshakeServer = HandshakeServer { you :: Name } deriving (Generic, Show)
+
+instance ToJSON HandshakePunter
+instance ToJSON HandshakeServer
+instance FromJSON HandshakePunter
+instance FromJSON HandshakeServer
 
 -- Online: Setup
 
-data SetupSP = SetupSP
+data Setup = Setup
   { punter :: PunterId
   , punters :: Int
   , map :: Map
   } deriving (Generic, Show)
 
-data SetupPS = SetupPSOn
+data Ready = ReadyOn
   { ready :: PunterId } deriving (Generic, Show)
 
-instance ToJSON SetupSP
-instance ToJSON SetupPS
-instance FromJSON SetupSP
-instance FromJSON SetupPS
+instance ToJSON Setup
+instance ToJSON Ready
+instance FromJSON Setup
+instance FromJSON Ready
 
 -- Online: Gameplay
 
-data GameplaySP = GameplaySP
+data PrevMoves = PrevMoves
   { move :: Moves } deriving (Generic, Show)
-type GameplayPS = Move
+type MyMove = Move
+
+instance ToJSON PrevMoves
+instance FromJSON PrevMoves
 
 -- Online: Scoring
 
-data ScoringSP = ScoringSP { stop :: Stop } deriving (Generic, Show)
+data Scoring = Scoring { stop :: Stop } deriving (Generic, Show)
 
-instance ToJSON ScoringSP
-instance FromJSON ScoringSP
+instance ToJSON Scoring
+instance FromJSON Scoring
 
