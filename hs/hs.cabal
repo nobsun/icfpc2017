@@ -2,7 +2,7 @@ name:                hs
 version:             0.1.0.0
 -- synopsis:
 -- description:
-homepage:            https://github.com/nobsun/hs#readme
+homepage:            https://github.com/nobsun/icfpc2017/hs#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Nobuo Yamashita
@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
   build-depends:       base >= 4.7 && < 5
+                     , fgl >= 5.5.3.1
   default-language:    Haskell2010
 
 executable hs-exe
@@ -24,6 +25,7 @@ executable hs-exe
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
+                     , fgl >= 5.5.3.1
                      , hs
   default-language:    Haskell2010
 
@@ -38,4 +40,4 @@ test-suite hs-test
 
 source-repository head
   type:     git
-  location: https://github.com/nobsun/hs
+  location: https://github.com/nobsun/icfpc2017/hs
