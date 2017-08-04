@@ -30,10 +30,12 @@ main = do
           hSetBuffering h NoBuffering
           output h (HandshakePunter{me=T.pack"sampou"})
           input h
-          msetup <- fmap (decode. B.pack) (input h)
+          str <- input h
+          let pid = getPunterId str -- workaround
+          let msetup = decode (B.pack str)
           case msetup :: Maybe Setup of
             Just setup -> do
-              let pid = 0 -- TODO ambigouse field label
+              --let pid = (punter::Setup->Int) setup
               output h (ReadyOn{ready=pid})
               loop h pid
         )
@@ -62,7 +64,7 @@ output h x = do
   let json = B.unpack (encode x)
   putStrLn ("-> " ++ json)
   hFlush stdout
-  hPutStrLn h (show (length json+1)++":"++json)
+  hPutStr h (show (length json)++":"++json)
 
 input :: Handle -> IO String
 input h = do
