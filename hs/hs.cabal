@@ -18,6 +18,7 @@ library
   exposed-modules:     Lib
                      , Online
                      , InternalJSON
+                     , GameState
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
@@ -33,19 +34,6 @@ executable hs-exe
                      , aeson >= 1.0.2.1
                      , text >= 1.2.2.1
                      , hs
-  default-language:    Haskell2010
-
-executable testpunter
-  hs-source-dirs:      app
-  main-is:             TestPunter.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , fgl >= 5.5.3.1
-                     , aeson >= 1.0.2.1
-                     , text >= 1.2.2.1
-                     , hs
-                     , network
-                     , bytestring
   default-language:    Haskell2010
 
 test-suite hs-test
