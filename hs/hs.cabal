@@ -16,6 +16,8 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Lib
+                     , Online
+                     , InternalJSON
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
