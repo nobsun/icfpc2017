@@ -8,6 +8,16 @@ import GHC.Generics
 import Data.Aeson
 import Data.Text
 
+type Name = String
+
+data HandshakePunter = HandshakePunter { me :: Name } deriving (Generic, Show)
+data HandshakeServer = HandshakeServer { you :: Name } deriving (Generic, Show)
+
+instance ToJSON HandshakePunter
+instance ToJSON HandshakeServer
+instance FromJSON HandshakePunter
+instance FromJSON HandshakeServer
+
 type PunterId = Int
 
 data Map = Map
