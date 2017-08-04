@@ -1,8 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
 import Data.Char (isDigit)
 import Data.Aeson (FromJSON, ToJSON, encode, decode)
 import Data.List (isPrefixOf, tails)
-import Data.Text as T (pack, unpack)
 import Debug.Trace (traceShow)
 import Network.Socket
 import Control.Exception (bracket)
@@ -28,7 +29,7 @@ main = do
         (hClose)
         (\h -> do
           hSetBuffering h NoBuffering
-          output h (HandshakePunter{me=T.pack"sampou"})
+          output h (HandshakePunter{me="sampou"})
           input h
           str <- input h
           let pid = getPunterId str -- workaround
