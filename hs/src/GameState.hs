@@ -18,6 +18,7 @@ data GameState = GameState
   { punter :: PunterId
   , punters :: Int
   , graph :: Gr SiteLabel RiverLabel
+  , mines :: [Node]
   } deriving (Generic, Show)
 
 type SiteLabel = Bool
@@ -34,10 +35,14 @@ initGameState (Setup spunter spunters smap setting) = GameState
   { punter = spunter
   , punters = spunters
   , graph = inigraph smap
+  , mines = mineList smap
   }
 
 inigraph :: Map -> Gr SiteLabel RiverLabel
 inigraph (Map ss rs ms) = mkGraph (Prelude.map (lnode ms . deSite) ss) (Prelude.map (ledge nonClaimed . deRiver) rs)
+
+mineList :: Map -> [Node]
+mineList (Map _ _ ms) = ms
 
 deSite :: Site -> SiteId
 deSite (Site i) = i
