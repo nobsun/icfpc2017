@@ -18,6 +18,7 @@ library
   exposed-modules:     Protocol
                      , GameState
                      , NormTypes
+                     , ClaimedGraph
                      , OnlinePlay
                      , Punter
                      , Punter.Pass
