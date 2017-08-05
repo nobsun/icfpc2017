@@ -3,7 +3,7 @@
 
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
 import Data.Char (isDigit)
-import Data.Aeson (FromJSON, ToJSON, encode, decode)
+import Data.Aeson (ToJSON, encode, decode)
 import Data.List (isPrefixOf, tails)
 import Debug.Trace (traceShow)
 import Network.Socket
@@ -35,12 +35,11 @@ main = do
           input h
           str <- input h
           let pid = getPunterId str -- workaround
-          let msetup = decode (B.pack str)
-          case msetup :: Maybe Setup of
-            Just setup -> do
-              --let pid = (punter::Setup->Int) setup
-              output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
-              loop h pid
+          let msetup = decode (B.pack str) :: Maybe Setup
+          setup <- maybe (fail "TestPunter: decode failure") return msetup
+          --let pid = (punter::Setup->Int) setup
+          output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
+          loop h pid
         )
   where
     loop h pid = do
