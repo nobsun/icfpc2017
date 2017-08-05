@@ -23,7 +23,9 @@ main = do
       addrinfos <- getAddrInfo Nothing (Just "punter.inf.ed.ac.uk") (Just port)
       let addr = head addrinfos
       sock <- socket (addrFamily addr) Stream defaultProtocol
+      putStr "connecting ... "
       connect sock (addrAddress addr)
+      putStrLn "done."
       bracket
         (socketToHandle sock ReadWriteMode)
         (hClose)
