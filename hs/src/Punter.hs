@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 module Punter where
 
-import GHC.Generics (Generic)
+-- import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
 import qualified Protocol as P
 
@@ -24,10 +24,11 @@ play :: IsPunter a => P.PrevMoves a -> P.MyMove a
 play (P.PrevMoves moves (Just a)) = chooseMove (applyMoves moves a)
 play (P.PrevMoves _moves Nothing) = error "Punter.play: no state is available"
 
+{- --- JSON の decode 結果の可否で区別できるので必要にならなかった
 data OfflineStage
   = Setup
   | GamePlay Int
-  | Scoring
+  --- | Scoring
   deriving (Eq, Ord, Show, Generic)
 
 instance ToJSON OfflineStage
@@ -35,3 +36,4 @@ instance FromJSON OfflineStage
 
 class IsPunter a => IsOfflinePunter a where
   offlineStage :: a -> OfflineStage
+ -}

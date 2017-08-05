@@ -12,14 +12,12 @@ import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
-import Punter (OfflineStage (Setup))
 import Punter
 import NormTypes (NRiver, toNRiver', deNRiver)
 
 data Punter
   = Punter
-  { stage :: Punter.OfflineStage
-  , setupInfo :: P.Setup
+  { setupInfo :: P.Setup
   , availableRivers :: Set NRiver
   , myRivers :: Set NRiver
   }
@@ -34,8 +32,7 @@ instance Punter.IsPunter Punter where
     { P.ready   = P.punter (s :: P.Setup)
     , P.state   = Just $
         Punter
-        { stage = Setup
-        , setupInfo = s
+        { setupInfo = s
         , availableRivers = Set.fromList [ toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
         , myRivers = Set.empty
         }
@@ -56,6 +53,3 @@ instance Punter.IsPunter Punter where
       Just r | (s,t) <- deNRiver r -> P.MvClaim punterId s t
     where
       punterId = P.punter (si :: P.Setup)
-
-instance Punter.IsOfflinePunter Punter where
-  offlineStage = stage
