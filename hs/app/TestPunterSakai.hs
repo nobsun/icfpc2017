@@ -29,10 +29,8 @@ test :: N.ServiceName -> IO ()
 test port = do
   N.withSocketsDo $ do
     addrinfos <- N.getAddrInfo Nothing (Just "punter.inf.ed.ac.uk") (Just port)
-    print addrinfos
     let addr = head addrinfos
     sock <- N.socket (N.addrFamily addr) N.Stream N.defaultProtocol
-    putStrLn "a"
     N.connect sock (N.addrAddress addr)
     bracket
       (N.socketToHandle sock ReadWriteMode)
