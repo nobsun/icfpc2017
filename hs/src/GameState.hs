@@ -12,8 +12,7 @@ import Data.Graph.Inductive.Basic
 import Data.Graph.Inductive.Graph
 import Data.Graph.Inductive.PatriciaTree
 
-import Online (Setup(..))
-import InternalJSON
+import Protocol
 
 data GameState = GameState
   { punter :: PunterId
