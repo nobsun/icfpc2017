@@ -12,12 +12,14 @@ import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
+import Punter (OfflineStage (Setup))
 import Punter
 import NormTypes (NRiver, toNRiver', deNRiver)
 
 data Punter
   = Punter
-  { setupInfo :: P.Setup
+  { stage :: Punter.OfflineStage
+  , setupInfo :: P.Setup
   , availableRivers :: Set NRiver
   , myRivers :: Set NRiver
   }
@@ -32,7 +34,8 @@ instance Punter.IsPunter Punter where
     { P.ready   = P.punter (s :: P.Setup)
     , P.state   = Just $
         Punter
-        { setupInfo = s
+        { stage = Setup
+        , setupInfo = s
         , availableRivers = Set.fromList [ toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
         , myRivers = Set.empty
         }
@@ -65,6 +68,9 @@ instance Punter.IsPunter Punter where
               , myRivers = Set.insert nr myRivers1
               }
             )   where (s, t) = deNRiver nr
+
+instance Punter.IsOfflinePunter Punter where
+  offlineStage = stage
 
 -- 他のプレイヤーの打った手による状態更新
 update :: P.Moves -> Punter -> Punter
