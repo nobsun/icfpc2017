@@ -17,7 +17,7 @@ instance J.ToJSON PassPunter where
 instance J.FromJSON PassPunter where
   parseJSON v = PassPunter <$> J.parseJSON v
 
-instance Punter.Punter PassPunter where
+instance Punter.IsPunter PassPunter where
   setup s =
     P.ReadyOn
     { P.ready   = P.punter (s :: P.Setup)
