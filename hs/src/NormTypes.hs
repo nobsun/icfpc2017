@@ -31,7 +31,7 @@ data NClaim = NClaim
   , nriver  :: NRiver
   }
 
-toNClaim :: Claim -> NClaim
-toNClaim (Claim pid src tar)
+toNClaim :: (PunterId, SiteId, SiteId) -> NClaim
+toNClaim (pid, src, tar)
   | src < tar  = NClaim pid (NRiver src tar)
   | otherwise  = NClaim pid (NRiver tar src)
