@@ -32,7 +32,7 @@ runPunterOffline' name _ = do
   send (P.HandshakePunter{ P.me=name })
   (_::P.HandshakeServer) <- recv "handshake"
   setupInfo <- recv "setup"
-  let (ready :: P.Ready a) = Punter.setup setupInfo
+  let ready = Punter.setup setupInfo :: P.Ready a
   let Just s = P.state (ready :: P.Ready a)
   send (ready{ P.state = Just s } :: P.Ready a)
   let loop :: a -> IO ()
