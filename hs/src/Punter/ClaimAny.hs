@@ -6,7 +6,7 @@
 module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
-import Data.Set (Set)
+import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
@@ -41,11 +41,11 @@ instance Punter.IsPunter Punter where
     , P.state = Just st2
     }
     where
-      Punter{ setupInfo = setupInfo, availableRivers = availableRivers1, myRivers = myRivers1 } = st1
+      Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = st1
       
-      punterId = P.punter (setupInfo :: P.Setup)
+      punterId = P.punter (si :: P.Setup)
 
-      ars = availableRivers1 `Set.difference` Set.fromList [e | P.MvClaim _punter' source target <- moves, e <- [(source,target), (target,source)]]
+      ars = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s' t' <- moves, e <- [(s',t'), (t',s')]]
       (move, availableRivers2, myRivers2) =
         case Set.toList ars of
           [] -> (P.MvPass punterId, ars, myRivers1)
@@ -64,3 +64,4 @@ instance Punter.IsPunter Punter where
         , myRivers = myRivers2
         }
 
+  play _ = error "fix me. maybe offline mode."
