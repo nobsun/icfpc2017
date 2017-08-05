@@ -3,6 +3,8 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include <random>
+
 #include "json.hpp"
 
 #include "Game.hpp"
@@ -10,6 +12,8 @@
 using namespace std;
 // for convenience
 using json = nlohmann::json;
+
+std::mt19937 mt;
 
 json recvMessage() {
   int n;
@@ -205,6 +209,18 @@ JMove parseMove(json jmove) {
   throw invalid_argument("bad move");
 }
 
+json toJson(JMove move) {
+  json msg;
+  if (move.isPass()) {
+    msg["pass"]["punter"] = move.punter;
+  } else {
+    msg["claim"]["punter"] = move.punter;
+    msg["claim"]["source"] = move.source ;
+    msg["claim"]["target"] = move.target;
+  }
+  return msg;
+}
+
 vector<JMove> parseMoves(json jmove) {
   vector<JMove> moves;
   auto jmoves = jmove.at("moves");
@@ -227,6 +243,22 @@ JGame parseGame(json jsgame) {
   game.punters = jsgame.at("punters");
   cerr << game.punters << endl;
   return game;
+}
+
+JMove genmove(const Game& game, int player) {
+  vector<int> openRivers;
+  for (size_t i = 0; i < game.map.rivers; i++) {
+    if (game.owner[i] < 0)
+      openRivers.push_back(i);
+  }
+  if (openRivers.size() == 0) {
+    return JMove::pass(player);
+  } else {
+    uniform_int_distribution<int> dist(0, openRivers.size() - 1);
+    int n = openRivers[dist(mt)];
+    auto& r = game.game.map.rivers[n];
+    return JMove::claim(player, r.source, r.target);
+  }
 }
 
 void handshake()
@@ -256,6 +288,8 @@ void loop() {
       auto ms = parseMoves(*jmove);
       cerr << "moves " << ms.size() << endl;
       game.update(ms);
+      auto move = toJson(genmove(game, game.game.punter));
+      sendMessage(move);
       continue;
     }
     auto jstop = msg.find("stop");
@@ -266,6 +300,9 @@ void loop() {
 }
 
 int main() {
+  std::random_device rnd;
+  mt.seed(rnd()); 
+
 #if 1
   try {
     handshake();
