@@ -7,6 +7,7 @@ module Protocol where
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
+import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.ByteString.Lazy as BSL
 import Data.Text
 
@@ -33,7 +34,7 @@ data Setup = Setup
 
 data Ready a = ReadyOn
   { ready :: PunterId
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   , futures :: Maybe Futures
   } deriving (Generic, Show)
 
@@ -49,12 +50,12 @@ instance FromJSON a => FromJSON (Ready a)
 
 data PrevMoves a = PrevMoves
   { move :: Moves
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   } deriving (Generic, Show)
 
 data MyMove a = MyMove
   { move :: Move
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   } deriving (Generic, Show)
 
 instance ToJSON a => ToJSON (PrevMoves a) where
@@ -85,11 +86,6 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
-data GState a = GState { state :: a } deriving (Generic, Show)
-
-instance ToJSON a => ToJSON (GState a)
-instance FromJSON a => FromJSON (GState a)
-
 data Settings = Settings { futures :: Bool } deriving (Generic, Show)
 type Futures = [Future]
 
@@ -103,8 +99,8 @@ instance FromJSON Settings
 instance ToJSON Future
 instance FromJSON Future
 
-data Site = Site { id :: SiteId } deriving (Generic, Show)
-data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show)
+data Site = Site { id :: SiteId } deriving (Generic, Show, Eq, Ord)
+data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show, Eq, Ord)
 
 instance ToJSON Site
 instance ToJSON River
@@ -119,30 +115,46 @@ data Moves = Moves
 instance ToJSON Moves
 instance FromJSON Moves
 
-data Move = MvClaim { claim :: Claim }
-          | MvPass { pass :: PunterId }
-          deriving (Generic, Show)
+data Move
+  = MvClaim
+    { punter :: PunterId
+    , source :: SiteId
+    , target :: SiteId
+    }
+  | MvPass
+    { punter :: PunterId
+    }
+  deriving (Generic, Show)
 
 instance ToJSON Move where
-  toJSON = genericToJSON (defaultOptions { sumEncoding = UntaggedValue  })
+  toJSON (MvClaim punterId src tgt) = object $
+    [ "claim" .=
+        object
+        [ "punter" .= toJSON punterId
+        , "source" .= toJSON src
+        , "target" .= toJSON tgt
+        ]
+    ]
+  toJSON (MvPass punterId) = object $
+    [ "pass" .= object [ "punter" .= toJSON punterId ]
+    ]
   
 instance FromJSON Move where
-  parseJSON = genericParseJSON (defaultOptions { sumEncoding = UntaggedValue  })
-
-
-data Punter = Punter { punter :: PunterId } deriving (Generic, Show)
-
-instance ToJSON Punter
-instance FromJSON Punter
-
-data Claim = Claim
-  { punter :: PunterId
-  , source :: SiteId
-  , target :: SiteId
-  } deriving (Generic, Show)
-
-instance ToJSON Claim
-instance FromJSON Claim
+  parseJSON = do
+    withObject "Move" $ \obj ->
+      case HashMap.lookup "claim" obj of
+        Just claim -> do
+          let f obj2 = 
+                MvClaim
+                <$> (obj2 .: "punter")
+                <*> (obj2 .: "source")
+                <*> (obj2 .: "target")
+          withObject "Claim" f claim
+        Nothing ->
+          case HashMap.lookup "pass" obj of
+            Just pass -> do
+              withObject "pass" (\obj2 -> MvPass <$> (obj2 .: "punter")) pass
+            Nothing -> fail $ show obj ++ " is not valid Move"
 
 data Stop = Stop { moves :: [Move]
                  , scores :: [Score]
@@ -160,3 +172,4 @@ instance FromJSON Score
 
 getMap :: FilePath -> IO (Maybe Map)
 getMap path = BSL.readFile path >>= return.decode
+
