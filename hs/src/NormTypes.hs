@@ -13,7 +13,7 @@ module NormTypes ( NRiver
 import Protocol
 
 -- import GHC.Generics
--- import Data.Aeson
+import Data.Aeson
 -- import Data.Aeson.Types
 
 newtype NRiver =
@@ -28,6 +28,12 @@ toNRiver (River s t) = toNRiver' s t
 
 deNRiver :: NRiver -> (SiteId, SiteId)
 deNRiver (NRiver p) = p
+
+instance ToJSON NRiver where
+  toJSON = toJSON . uncurry River . deNRiver
+
+instance FromJSON NRiver where
+  parseJSON = (toNRiver <$>) . parseJSON
 
 type NClaim = (PunterId, NRiver)
 
