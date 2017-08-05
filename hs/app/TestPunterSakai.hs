@@ -18,7 +18,8 @@ import System.Environment
 
 import qualified Protocol as P
 import Punter  
-import Punter.Pass as PassPunter
+import qualified Punter.Pass as PassPunter
+import qualified Punter.ClaimAny as AnyPunter
 
 main :: IO ()
 main = do
@@ -26,6 +27,7 @@ main = do
   [name, port] <- getArgs
   case name of
     "pass" -> runPunterOnline (Proxy :: Proxy PassPunter.Punter) port
+    "any" -> runPunterOnline (Proxy :: Proxy AnyPunter.Punter) port
     _ -> error "unknown punter algorithm"
 
 test :: String -> IO ()
