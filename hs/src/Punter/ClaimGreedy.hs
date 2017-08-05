@@ -72,7 +72,7 @@ instance Punter.IsPunter Punter where
     where
       punterId = P.punter (si :: P.Setup)
 
-      p'@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
+      p'@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } = update moves st1
 
       (move, st2) =
         case choice p' of
@@ -90,20 +90,17 @@ instance Punter.IsPunter Punter where
               , st1
                 { availableRivers = Set.delete r availableRivers1
                 , myRivers = Set.insert r myRivers1
+                , mySites = Set.insert t (Set.insert s mySites1)
                 }
               )
 
 -- 他のプレイヤーの打った手による状態更新
 update :: P.Moves -> Punter -> Punter
-update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } =
+update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
   p1
-  { availableRivers = availableRivers1 \\ movedRivers
-  , myRivers = myRivers1 `Set.union` movedRivers
-  , mySites = mySites1 `Set.union` movedSites
+  { availableRivers = availableRivers1 \\ Set.fromList [toNRiver' s t | P.MvClaim _punter' s t <- moves]
   }
-  where
-    movedRivers = Set.fromList [toNRiver' s t | P.MvClaim _punter' s t <- moves]
-    movedSites = Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [s, t]]
+
 
 choice :: Punter -> Maybe NRiver
 choice Punter { availableRivers = ars } = listToMaybe $ Set.toList ars
