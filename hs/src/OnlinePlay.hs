@@ -47,7 +47,8 @@ runPunterOnline' name _ h = do
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
             let move = Punter.play $ moves{ P.state = Just s' }
-            send h $ (move{ P.state = Nothing } :: P.MyMove ())
+            send h $ (move { P.state = Nothing } :: P.MyMove a)
+--            send h $ (move :: P.MyMove a)  -- with state
             loop $ fromJust $ P.state (move :: P.MyMove a)
           J.Error _ -> do
             case J.fromJSON v of
