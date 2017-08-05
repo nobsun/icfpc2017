@@ -30,14 +30,14 @@ runPunterOffline punter = do
 runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
 runPunterOffline' name _ = do
   send (P.HandshakePunter{ P.me=name })
-  (_::P.HandshakeServer) <- recv
-  setupInfo <- recv
+  (_::P.HandshakeServer) <- recv "handshake"
+  setupInfo <- recv "setup"
   let (ready :: P.Ready a) = Punter.setup setupInfo
   let Just s = P.state (ready :: P.Ready a)
   send (ready{ P.state = Just s } :: P.Ready a)
   let loop :: a -> IO ()
       loop s' = do
-        (v :: J.Value) <- recv
+        (v :: J.Value) <- recv "PrevMoves"
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
             let move = Punter.play $ moves{ P.state = Just s' }
@@ -57,13 +57,13 @@ send x = do
   B.hPutStr stdout $ B.pack (show (B.length json)) <> ":" <> json
   hFlush stdout
 
-recv :: J.FromJSON a => IO a
-recv = do
+recv :: J.FromJSON a => String -> IO a
+recv name = do
   len <- getLength []
   s <- B.hGet stdin len
   B.hPutStrLn stderr $ "<- " <> s
   case J.decode s of
-    Nothing -> error ("failed to parse " ++ show s)
+    Nothing -> error ("failed to parse: " ++ name ++ ": " ++ show s)
     Just a -> return a
   where
     getLength cs = do

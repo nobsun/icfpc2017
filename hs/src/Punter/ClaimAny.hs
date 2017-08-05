@@ -21,7 +21,7 @@ data Punter
   , availableRivers :: Set NRiver
   , myRivers :: Set NRiver
   }
-  deriving (Generic)
+  deriving (Generic, Show)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter
