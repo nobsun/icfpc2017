@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Protocol
                      , GameState
+                     , NormTypes
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny
@@ -26,6 +27,7 @@ library
                      , bytestring
                      , containers
                      , text >= 1.2.2.1
+                     , unordered-containers
   default-language:    Haskell2010
 
 executable TestPunter
@@ -38,6 +40,7 @@ executable TestPunter
                      , bytestring
                      , network
                      , text >= 1.2.2.1
+                     , unordered-containers
                      , hs
   default-language:    Haskell2010
 

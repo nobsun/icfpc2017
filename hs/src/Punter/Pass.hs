@@ -5,7 +5,6 @@
 module Punter.Pass where
 
 import qualified Data.Aeson as J
-import Data.Maybe
 import qualified Protocol as P
 import Punter
 
@@ -26,11 +25,8 @@ instance Punter.IsPunter Punter where
     }
   play prevMoves =
     P.MyMove
-    { P.move  =
-        P.MvPass
-        { P.pass =
-            case fromJust (P.state (prevMoves :: P.PrevMoves Punter)) of
-              Punter punter -> P.Punter punter
-        }
+    { P.move  = P.MvPass punterId
     , P.state = P.state (prevMoves :: P.PrevMoves Punter)
     }
+    where
+      Just (Punter punterId) = P.state (prevMoves :: P.PrevMoves Punter)
