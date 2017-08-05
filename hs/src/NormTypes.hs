@@ -12,8 +12,8 @@ module NormTypes ( NRiver
 import Protocol
 
 -- import GHC.Generics
-import Data.Aeson
-import Data.Aeson.Types
+-- import Data.Aeson
+-- import Data.Aeson.Types
 
 newtype NRiver = NRiver (SiteId, SiteId)
 
