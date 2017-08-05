@@ -23,25 +23,27 @@ import Punter.Pass as PassPunter
 main :: IO ()
 main = do
   hSetBuffering stdout LineBuffering
-  [port] <- getArgs
-  test port
+  [name, port] <- getArgs
+  case name of
+    "pass" -> runPunterOnline (Proxy :: Proxy PassPunter.PassPunter) port
+    _ -> error "unknown punter algorithm"
 
-test :: N.ServiceName -> IO ()
-test port = do
+test :: String -> IO ()
+test port = runPunterOnline (Proxy :: Proxy PassPunter.PassPunter) port
+
+runPunterOnline :: Punter.IsPunter a => Proxy a -> N.ServiceName -> IO ()
+runPunterOnline punter port = do
   N.withSocketsDo $ do
     addrinfos <- N.getAddrInfo Nothing (Just "punter.inf.ed.ac.uk") (Just port)
     let addr = head addrinfos
     sock <- N.socket (N.addrFamily addr) N.Stream N.defaultProtocol
     N.connect sock (N.addrAddress addr)
-    bracket
-      (N.socketToHandle sock ReadWriteMode)
-      (hClose)
-      (\h -> do
-        hSetBuffering h NoBuffering
-        runPunterOnline "sampou" (Proxy :: Proxy PassPunter.PassPunter) h)
+    bracket (N.socketToHandle sock ReadWriteMode) hClose $ \h -> do
+      hSetBuffering h NoBuffering
+      runPunterOnline' "sampou" punter h
 
-runPunterOnline :: forall a. Punter.Punter a => T.Text -> Proxy a -> Handle -> IO ()
-runPunterOnline name _ h = do
+runPunterOnline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> Handle -> IO ()
+runPunterOnline' name _ h = do
   send h $ P.HandshakePunter{ P.me=name }
   (_::P.HandshakeServer) <- recv h
   setupInfo <- recv h
