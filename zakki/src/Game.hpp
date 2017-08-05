@@ -82,41 +82,16 @@ public:
   }
 
   int riverId(int source, int target) const {
-    return riverIndex[source * sites.size() + target];
+    int index = riverIndex[source * sites.size() + target];
+    if (index < 0) throw invalid_argument("bad river");
+    return index;
   }
 
   bool connected(int from, int to) const {
     return connection[from * sites.size() + to];
   }
 
-  int distance(int from, int to) const {
-    const int no_route = numeric_limits<int>::max();
-    const int size = sites.size();
-    vector<int> dist(sites.size(), no_route);
-    dist[from] = 0;
-    for (int n = 0; n < size; n++) {
-      for (int i = 0; i < size; i++) {
-        if (dist[i] == no_route)
-          continue;
-        for (int j = 0; j < size; j++) {
-          if (i == j || dist[j] < no_route)
-            continue;
-          if (connected(i, j)) {
-            int d = dist[i] + 1;
-            //cerr << "distance:" << i << "->" << j << ":" << d << endl;
-            if (j == to)
-              return d;
-            if (dist[j] > d) {
-              dist[j] = d;
-            }
-          }
-        }
-      }
-    }
-    if (dist[to] != no_route)
-      return dist[to];
-    return 0;
-  }
+  int distance(int from, int to) const;
 };
 
 class Game {
@@ -135,10 +110,10 @@ public:
   void update(const vector<JMove>& moves) {
     for (auto m : moves) {
       if (m.isPass()) {
-        cerr << "PASS " << m.punter << endl;
+        //cerr << "PASS " << m.punter << endl;
       } else {
         int id = map.riverId(m.source, m.target);
-        cerr << "CLAIM " << m.punter << ":" << id << endl;
+        //cerr << "CLAIM " << m.punter << ":" << m.source << "-" << m.target << ":" << id << endl;
         if (owner[id] >= 0 && owner[id] != m.punter)
           cerr << "??? OWNED " << owner[id] << "<>" << m.punter << endl;
         owner[id] = m.punter;

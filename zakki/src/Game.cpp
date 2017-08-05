@@ -15,6 +15,36 @@ using namespace std;
 // for convenience
 using json = nlohmann::json;
 
+int Map::distance(int from, int to) const {
+  const int no_route = numeric_limits<int>::max();
+  const int size = sites.size();
+  vector<int> dist(sites.size(), no_route);
+  dist[from] = 0;
+  for (int n = 0; n < size; n++) {
+    for (int i = 0; i < size; i++) {
+      if (dist[i] == no_route)
+        continue;
+      for (int j = 0; j < size; j++) {
+        if (i == j)
+          continue;
+        if (connected(i, j)) {
+          int d = dist[i] + 1;
+          //if (j == to) return d;
+          if (dist[j] > d) {
+            //cerr << "distance:" << i << "->" << j << ":" << d << endl;
+            dist[j] = d;
+          }
+        }
+      }
+    }
+    if (dist[to] != no_route)
+      return dist[to];
+  }
+  if (dist[to] != no_route)
+    return dist[to];
+  return 0;
+}
+
 int Game::score(int punter) {
   int score = 0;
   const int size = map.sites.size();
@@ -41,7 +71,10 @@ bool Game::hasRoute(int from, int to, int punter) {
       if (dist[i] == no_route)
         continue;
       for (int j = 0; j < size; j++) {
+        if (i == j || dist[j] < no_route)
+          continue;
         if (map.connected(i, j) && owner[map.riverId(i, j)] == punter) {
+          //cerr << "owenr " << i << "-" << j << ":" << map.riverId(i, j) << " " << owner[map.riverId(i, j)] << endl;
           if (j == to)
             return true;
           int d = dist[i] + 1;
