@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <memory>
 
 #include "json.hpp"
 
@@ -30,7 +31,8 @@ json recvMessage() {
 void sendMessage(json json) {
   string str = json.dump();
   int n = str.size();
-  cout << n << ":" << str << endl;
+  cerr << "send:" << n << ":" << json;
+  cout << n << ":" << str << flush;
 }
 
 struct River {
@@ -221,6 +223,34 @@ json toJson(JMove move) {
   return msg;
 }
 
+json toJson(const JMap& jmap) {
+  json msg;
+  for (auto id : jmap.sites) {
+    json site;
+    site["id"] = id;
+    msg["sites"].push_back(site);
+  }
+  msg["mines"] = jmap.mines;
+  for (auto r : jmap.rivers) {
+    json jr;
+    jr["source"] = r.source;
+    jr["target"] = r.target;
+    msg["rivers"].push_back(jr);
+  }
+
+  return msg;
+}
+
+json toJson(const Game& game) {
+  json msg;
+  msg["map"] = toJson(game.game.map);
+  msg["punter"] = game.game.punter;
+  msg["punters"] = game.game.punters;
+  msg["owner"] = game.owner;
+
+  return msg;
+}
+
 vector<JMove> parseMoves(json jmove) {
   vector<JMove> moves;
   auto jmoves = jmove.at("moves");
@@ -268,27 +298,47 @@ void handshake()
 }
 
 void loop() {
-  json msg;
-
-  msg = recvMessage();
-  cerr << msg << endl;
-  msg = recvMessage();
-  JGame jgame = parseGame(msg);
-  Game game(jgame);
-
-  json readyMsg;
-  readyMsg["ready"] = game.game.punter;
-  sendMessage(readyMsg);
+  JGame jgame;// = parseGame(msg);
+  shared_ptr<Game> game;//(jgame);
 
   while (true) {
     json msg = recvMessage();
     cerr << msg << endl;
+
+    auto jyou = msg.find("you");
+    if (jyou != msg.end()) {
+      cerr << "YOU:" << *jyou << endl;
+      continue;
+    }
+    auto jmap = msg.find("map");
+    if (jmap != msg.end()) {
+      cerr << "SETUP:" << *jmap << endl;
+      //msg = recvMessage();
+      jgame = parseGame(msg);
+      game = make_shared<Game>(jgame);
+
+      json readyMsg;
+      readyMsg["ready"] = game->game.punter;
+      readyMsg["state"] = toJson(*game);
+      sendMessage(readyMsg);
+      continue;
+    }
+
+    //json msg = recvMessage();
     auto jmove = msg.find("move");
     if (jmove != msg.end()) {
+      auto jstate = msg.find("state");
+      if (jstate != msg.end()) {
+        jgame = parseGame(*jstate);
+        game = make_shared<Game>(jgame);
+        game->owner = (*jstate)["owner"].get<vector<int>>();
+      }
+
       auto ms = parseMoves(*jmove);
       cerr << "moves " << ms.size() << endl;
-      game.update(ms);
-      auto move = toJson(genmove(game, game.game.punter));
+      game->update(ms);
+      auto move = toJson(genmove(*game, game->game.punter));
+      move["state"] = toJson(*game);
       sendMessage(move);
       continue;
     }
@@ -305,6 +355,7 @@ int main() {
 
 #if 1
   try {
+    cerr << "HANDSHAKE" << endl;
     handshake();
     loop();
   } catch (exception ex) {
