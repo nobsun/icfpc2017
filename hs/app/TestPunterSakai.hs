@@ -50,7 +50,7 @@ runPunterOnline' name _ h = do
   let (ready :: P.Ready a) = Punter.setup setupInfo
   let Just s = P.state (ready :: P.Ready a)
   send h $ (ready{ P.state = Nothing } :: P.Ready ())
-  let loop :: P.GState a -> IO ()
+  let loop :: a -> IO ()
       loop s = do
         (v :: J.Value) <- recv h
         case J.fromJSON v of
