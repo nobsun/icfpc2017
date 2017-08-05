@@ -9,13 +9,51 @@
 #include "json.hpp"
 
 #include "Game.hpp"
+#include "Player.hpp"
 
 using namespace std;
 // for convenience
 using json = nlohmann::json;
 
-void initPlayer();
-JMove genmove(const Game& game, int player);
+int Game::score(int punter) {
+  int score = 0;
+  const int size = map.sites.size();
+  for (int mine : map.mines) {
+    for (int i = 0; i < size; i++) {
+      if (mine != i && hasRoute(mine, i, punter)) {
+        int d = map.distance(mine, i);
+        cerr << mine << ":" << i << "->" << d << endl;
+        score += d * d;
+      }
+    }
+  }
+  return score;
+}
+
+bool Game::hasRoute(int from, int to, int punter) {
+  const int no_route = numeric_limits<int>::max();
+  const int size = map.sites.size();
+  vector<int> dist(size, no_route);
+  dist[from] = 0;
+  for (int n = 0; n < size; n++) {
+    bool changed = false;
+    for (int i = 0; i < size; i++) {
+      if (dist[i] == no_route)
+        continue;
+      for (int j = 0; j < size; j++) {
+        if (map.connected(i, j) && owner[map.riverId(i, j)] == punter) {
+          if (j == to)
+            return true;
+          int d = dist[i] + 1;
+          dist[j] = d;
+          changed = true;
+        }
+      }
+    }
+    if (!changed) return false;
+  }
+  return false;
+}
 
 json recvMessage() {
   int n;

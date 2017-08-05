@@ -89,7 +89,7 @@ public:
     return connection[from * sites.size() + to];
   }
 
-  int distance(int from, int to) {
+  int distance(int from, int to) const {
     const int no_route = numeric_limits<int>::max();
     const int size = sites.size();
     vector<int> dist(sites.size(), no_route);
@@ -99,8 +99,13 @@ public:
         if (dist[i] == no_route)
           continue;
         for (int j = 0; j < size; j++) {
+          if (i == j || dist[j] < no_route)
+            continue;
           if (connected(i, j)) {
             int d = dist[i] + 1;
+            //cerr << "distance:" << i << "->" << j << ":" << d << endl;
+            if (j == to)
+              return d;
             if (dist[j] > d) {
               dist[j] = d;
             }
@@ -140,4 +145,8 @@ public:
       }
     }
   }
+  
+  bool hasRoute(int from, int to, int punter);
+  int score(int punter);
 };
+

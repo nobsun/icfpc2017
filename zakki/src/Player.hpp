@@ -2,4 +2,4 @@
 #include "Game.hpp"
 
 void initPlayer();
-JMove genmove(const Game& game, int player);
+JMove genmove(Game& game, int player);
