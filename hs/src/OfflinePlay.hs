@@ -5,7 +5,7 @@
 
 module OfflinePlay where
 
-import qualified Data.ByteString.Lazy.Char8 as B
+import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Char (isDigit)
 import qualified Data.Aeson as J
 import Data.Maybe
@@ -52,16 +52,16 @@ runPunterOffline' name _ = do
 send :: J.ToJSON a => a -> IO ()
 send x = do
   let json = J.encode x
-  B.hPutStrLn stderr ("-> " <> json)
+  L8.hPutStrLn stderr ("-> " <> json)
   hFlush stderr
-  B.hPutStr stdout $ B.pack (show (B.length json)) <> ":" <> json
+  L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
 
-recv' :: IO B.ByteString
+recv' :: IO L8.ByteString
 recv' = do
   len <- getLength []
-  s <- B.hGet stdin len
-  B.hPutStrLn stderr $ "<- " <> s
+  s <- L8.hGet stdin len
+  L8.hPutStrLn stderr $ "<- " <> s
   return s
   where
     getLength cs = do
