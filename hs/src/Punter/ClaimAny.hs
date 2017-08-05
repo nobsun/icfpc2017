@@ -6,7 +6,7 @@
 module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
-import Data.Set (Set, (\\))
+import Data.Set (Set)
 import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
@@ -35,33 +35,37 @@ instance Punter.IsPunter Punter where
         }
     , P.futures = Nothing
     }
-  play P.PrevMoves{ P.state = Just st1, P.move = P.Moves{ P.moves = moves } } =
+  play P.PrevMoves{ P.state = Just st1, P.move = moves } =
     P.MyMove
     { P.move  = move
     , P.state = Just st2
     }
     where
-      Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = st1
-      
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.punter (setupInfo :: P.Setup)
 
-      ars = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s' t' <- moves, e <- [(s',t'), (t',s')]]
-      (move, availableRivers2, myRivers2) =
-        case Set.toList ars of
-          [] -> (P.MvPass punterId, ars, myRivers1)
+      Punter{ setupInfo = setupInfo, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
+
+      (move, st2) =
+        case Set.toList availableRivers1 of
+          [] ->
+            ( P.MvPass punterId
+            , st1
+            )
           r@(s,t):_ ->
             ( P.MvClaim
               { P.punter = punterId
               , P.source = s
               , P.target = t
               }
-            , Set.delete r ars
-            , Set.insert r myRivers1
+            , st1
+              { availableRivers = Set.delete r availableRivers1
+              , myRivers = Set.insert r myRivers1
+              }
             )
-      st2 =
-        st1
-        { availableRivers = availableRivers2
-        , myRivers = myRivers2
-        }
 
-  play _ = error "fix me. maybe offline mode."
+-- 他のプレイヤーの打った手による状態更新
+update :: P.Moves -> Punter -> Punter
+update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
+  p1
+  { availableRivers = availableRivers1 `Set.difference` Set.fromList [e | P.MvClaim _punter' source target <- moves, e <- [(source,target), (target,source)]]
+  }
