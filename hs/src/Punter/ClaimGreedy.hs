@@ -21,13 +21,14 @@ import GHC.Generics
 import Dijkstra
 import qualified Protocol as P
 import Punter
+import NormTypes
 
 data Punter
   = Punter
   { setupInfo :: P.Setup
   , scoreTable :: IntMap (IntMap Integer)
-  , availableRivers :: Set (Int,Int)
-  , myRivers :: Set (Int,Int)
+  , availableRivers :: Set NRiver
+  , myRivers :: Set NRiver
   , mySites :: Set P.SiteId
   }
   deriving (Generic)
@@ -43,7 +44,7 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , scoreTable = scores
-        , availableRivers = Set.fromList [(s',t') | P.River s' t' <- P.rivers (P.map s)]
+        , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
         , myRivers = Set.empty
         , mySites = Set.empty
         }
@@ -79,26 +80,30 @@ instance Punter.IsPunter Punter where
             ( P.MvPass punterId
             , st1
             )
-          Just r@(s,t) ->
-            ( P.MvClaim
-              { P.punter = punterId
-              , P.source = s
-              , P.target = t
-              }
-            , st1
-              { availableRivers = Set.delete r availableRivers1
-              , myRivers = Set.insert r myRivers1
-              }
-            )
+          Just r -> case deNRiver r of
+            (s, t) ->
+              ( P.MvClaim
+                { P.punter = punterId
+                , P.source = s
+                , P.target = t
+                }
+              , st1
+                { availableRivers = Set.delete r availableRivers1
+                , myRivers = Set.insert r myRivers1
+                }
+              )
 
 -- 他のプレイヤーの打った手による状態更新
 update :: P.Moves -> Punter -> Punter
 update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } =
   p1
-  { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
-  , myRivers = myRivers1 `Set.union` Set.fromList [(s,t) | P.MvClaim _punter' s t <- moves]
-  , mySites = mySites1 `Set.union` Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [s, t]]
+  { availableRivers = availableRivers1 \\ movedRivers
+  , myRivers = myRivers1 `Set.union` movedRivers
+  , mySites = mySites1 `Set.union` movedSites
   }
+  where
+    movedRivers = Set.fromList [toNRiver' s t | P.MvClaim _punter' s t <- moves]
+    movedSites = Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [s, t]]
 
-choice :: Punter -> Maybe (Int, Int)
+choice :: Punter -> Maybe NRiver
 choice Punter { availableRivers = ars } = listToMaybe $ Set.toList ars
