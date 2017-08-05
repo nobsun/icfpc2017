@@ -35,7 +35,7 @@ instance Punter.Punter Dummy where
         P.MvPass
         { P.pass =
             case fromJust (P.state (prevMoves :: P.PrevMoves Dummy)) of
-              P.GState (Dummy punter) -> punter
+              P.GState (Dummy punter) -> P.Punter punter
         }
     , P.state = P.state (prevMoves :: P.PrevMoves Dummy)
     }
