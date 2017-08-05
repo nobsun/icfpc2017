@@ -11,7 +11,7 @@ module NormTypes ( NRiver
 
 import Protocol
 
-import GHC.Generics
+-- import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
 
