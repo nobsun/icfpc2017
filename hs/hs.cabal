@@ -26,6 +26,8 @@ library
                      , Punter.ClaimAny
                      , Punter.ClaimGreedy
                      , Dijkstra
+                     , UnionFind
+                     , ScoreTable
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
