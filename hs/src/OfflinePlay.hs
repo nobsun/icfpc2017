@@ -34,7 +34,7 @@ runPunterOffline' name _ = do
   setupInfo <- recv "setup"
   let ready = Punter.setup setupInfo :: P.Ready a
   let Just s = P.state (ready :: P.Ready a)
-  send (ready{ P.state = Just s } :: P.Ready a)
+  send ready
   let loop :: a -> IO ()
       loop s' = do
         (v :: J.Value) <- recv "PrevMoves"
