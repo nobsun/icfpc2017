@@ -18,7 +18,7 @@ import Data.Aeson
 
 newtype NRiver =
   NRiver (SiteId, SiteId)
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 toNRiver' :: SiteId -> SiteId -> NRiver
 toNRiver' s t = if s < t then NRiver (s, t) else NRiver (t, s)
