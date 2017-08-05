@@ -15,7 +15,7 @@ import qualified Data.Text as T
 import System.IO
 
 import qualified Protocol as P
-import Punter  
+import Punter
 import qualified Punter.Pass as PassPunter
 
 test :: IO ()
@@ -25,7 +25,7 @@ runPunterOffline :: Punter.IsPunter a => Proxy a -> IO ()
 runPunterOffline punter = do
       hSetBuffering stdin (BlockBuffering Nothing)
       hSetBuffering stdout (BlockBuffering Nothing)
-      runPunterOffline' "sampou" punter
+      runPunterOffline' "sampou-offline" punter
 
 runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
 runPunterOffline' name _ = do

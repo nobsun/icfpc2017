@@ -64,11 +64,12 @@ public:
   vector<bool> connection;
   const size_t rivers;
 
-  Map(const JMap& m)
+  explicit Map(const JMap& m)
     : sites(m.sites),
       mines(m.mines),
       rivers(m.rivers.size()) {
-    int size = sites.size();
+    //cerr << "new Map" << endl;
+    int size = sites[sites.size() - 1] + 1;
     connection.resize(size * size);
     riverIndex.resize(size * size);
     fill(riverIndex.begin(), riverIndex.end(), -1);
@@ -79,16 +80,19 @@ public:
       riverIndex[r.source * size  + r.target] = i;
       riverIndex[r.target * size  + r.source] = i;
     }
+    //cerr << "ok." << endl;
   }
 
   int riverId(int source, int target) const {
-    int index = riverIndex[source * sites.size() + target];
+    int size = sites[sites.size() - 1] + 1;
+    int index = riverIndex[source * size + target];
     if (index < 0) throw invalid_argument("bad river");
     return index;
   }
 
   bool connected(int from, int to) const {
-    return connection[from * sites.size() + to];
+    int size = sites[sites.size() - 1] + 1;
+    return connection[from * size + to];
   }
 
   int distance(int from, int to) const;
@@ -100,11 +104,17 @@ public:
   const Map map;
   vector<int> owner;
 
-  Game(const JGame& g) :
+  explicit Game(const JGame& g) :
     game(g), map(g.map) {
-    for (size_t i = 0; i < map.rivers; i++) {
-      owner.push_back(-1);
-    }
+    //cerr << "new Game" << endl;
+    //cerr << map.rivers << endl;
+    owner.resize(map.rivers);
+    fill(owner.begin(), owner.end(), -1);
+    // for (size_t i = 0; i < map.rivers; i++) {
+    //   cerr << i << endl;
+    //   owner.push_back(-1);
+    // }
+    //cerr << "ok" << endl;
   }
 
   void update(const vector<JMove>& moves) {

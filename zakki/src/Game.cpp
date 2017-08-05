@@ -24,10 +24,12 @@ int Map::distance(int from, int to) const {
     for (int i = 0; i < size; i++) {
       if (dist[i] == no_route)
         continue;
+      int  source = sites[i];
       for (int j = 0; j < size; j++) {
         if (i == j)
           continue;
-        if (connected(i, j)) {
+        int target = sites[j];
+        if (connected(source, target)) {
           int d = dist[i] + 1;
           //if (j == to) return d;
           if (dist[j] > d) {
@@ -50,9 +52,10 @@ int Game::score(int punter) {
   const int size = map.sites.size();
   for (int mine : map.mines) {
     for (int i = 0; i < size; i++) {
-      if (mine != i && hasRoute(mine, i, punter)) {
-        int d = map.distance(mine, i);
-        cerr << mine << ":" << i << "->" << d << endl;
+      int source = map.sites[i];
+      if (mine != i && hasRoute(mine, source, punter)) {
+        int d = map.distance(mine, source);
+        //cerr << mine << ":" << source << "->" << d << endl;
         score += d * d;
       }
     }
@@ -70,10 +73,12 @@ bool Game::hasRoute(int from, int to, int punter) {
     for (int i = 0; i < size; i++) {
       if (dist[i] == no_route)
         continue;
+      int source = map.sites[i];
       for (int j = 0; j < size; j++) {
         if (i == j || dist[j] < no_route)
           continue;
-        if (map.connected(i, j) && owner[map.riverId(i, j)] == punter) {
+        int target = map.sites[j];
+        if (map.connected(source, target) && owner[map.riverId(source, target)] == punter) {
           //cerr << "owenr " << i << "-" << j << ":" << map.riverId(i, j) << " " << owner[map.riverId(i, j)] << endl;
           if (j == to)
             return true;
@@ -244,8 +249,11 @@ void loop() {
     if (jmap != msg.end()) {
       cerr << "SETUP:" << *jmap << endl;
       //msg = recvMessage();
+      cerr << "parse Game" << endl;
       jgame = parseGame(msg);
+      cerr << "make Game" << endl;
       game = make_shared<Game>(jgame);
+      cerr << "ok" << endl;
 
       json readyMsg;
       readyMsg["ready"] = game->game.punter;
