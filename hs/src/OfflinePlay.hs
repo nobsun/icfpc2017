@@ -33,7 +33,7 @@ runPunterOffline' name _ = do
   (_::P.HandshakeServer) <- recv "handshake"
   setupInfo <- recv "setup"
   let ready = Punter.setup setupInfo :: P.Ready a
-  let Just s = P.state (ready :: P.Ready a)
+  s <- maybe (fail "runPunterOffline': state must exist for offline-mode") return $ P.state (ready :: P.Ready a)
   send ready
   let loop :: a -> IO ()
       loop s' = do
