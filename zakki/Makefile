@@ -1,4 +1,4 @@
-TARGET=main
+TARGET=punter
 CXX = g++
 OPTIMIZE = -O3
 CPP11 = -std=c++11 -std=c++1y
