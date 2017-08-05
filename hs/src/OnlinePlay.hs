@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module OnlinePlay where
 
+import Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char (isDigit)
 import qualified Data.Aeson as J
@@ -36,14 +37,14 @@ runPunterOnline punter port = do
 runPunterOnline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> Handle -> IO ()
 runPunterOnline' name _ h = do
   send h $ P.HandshakePunter{ P.me=name }
-  (_::P.HandshakeServer) <- recv h
-  setupInfo <- recv h
+  (_::P.HandshakeServer) <- recv True h
+  setupInfo <- recv False h
   let (ready :: P.Ready a) = Punter.setup setupInfo
   let Just s = P.state (ready :: P.Ready a)
   send h $ (ready{ P.state = Nothing } :: P.Ready ())
   let loop :: a -> IO ()
       loop s' = do
-        (v :: J.Value) <- recv h
+        (v :: J.Value) <- recv True h
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
             let move = Punter.play $ moves{ P.state = Just s' }
@@ -63,11 +64,11 @@ send h x = do
   hFlush stderr
   B.hPutStr h $ B.pack (show (B.length json)) <> ":" <> json
 
-recv :: J.FromJSON a => Handle -> IO a
-recv h = do
+recv :: J.FromJSON a => Bool -> Handle -> IO a
+recv b h = do
   len <- getLength []
   s <- B.hGet h len
-  B.hPutStrLn stderr $ "<- " <> s
+  when b $ B.hPutStrLn stderr $ "<- " <> s
   case J.decode s of
     Nothing -> error ("failed to parse " ++ show s)
     Just a -> return a
