@@ -15,7 +15,9 @@ import Protocol
 -- import Data.Aeson
 -- import Data.Aeson.Types
 
-newtype NRiver = NRiver (SiteId, SiteId)
+newtype NRiver =
+  NRiver (SiteId, SiteId)
+  deriving (Eq, Ord)
 
 toNRiver' :: SiteId -> SiteId -> NRiver
 toNRiver' s t = if s < t then NRiver (s, t) else NRiver (t, s)
