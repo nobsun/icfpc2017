@@ -69,15 +69,15 @@ output h x = do
 
 input :: Handle -> IO String
 input h = do
-  len <- getLength h []
+  len <- getLength []
   token <- replicateM len (hGetChar h)
   putStrLn ("<- " ++ token)
   hFlush stdout
   return token
   where
-    getLength h cs = do
+    getLength cs = do
       c <- hGetChar h
-      if isDigit c then getLength h (c:cs) else return (read (reverse cs))
+      if isDigit c then getLength (c:cs) else return (read (reverse cs))
 
 getPunterId :: String -> Int
 getPunterId = read.takeWhile isDigit.drop 8.head.dropWhile(not.isPrefixOf"punter\":").tails
