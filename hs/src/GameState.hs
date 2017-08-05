@@ -8,14 +8,13 @@ import GHC.Generics
 import Data.Aeson
 import Data.Text
 import Data.Graph.Inductive.Basic
--- import Data.Graph.Inductive.Example (genUNodes,genLNodes,labUEdges,noEdges)
-import Data.Graph.Inductive.Graph
+import Data.Graph.Inductive.Graph as G
 import Data.Graph.Inductive.PatriciaTree
 
 import Protocol
 
 data GameState = GameState
-  { punter :: PunterId
+  { punter :: Int
   , punters :: Int
   , graph :: Gr SiteLabel RiverLabel
   , mines :: [Node]
@@ -57,3 +56,12 @@ lnode ms si
 
 ledge :: RiverLabel -> (SiteId, SiteId) -> LEdge RiverLabel
 ledge lab (s,t) = (s,t,lab)
+
+instance ToJSON GameState
+instance FromJSON GameState
+
+instance (ToJSON a, ToJSON b) => ToJSON (Gr a b) where
+  toJSON g = object ["labNodes" .= labNodes g, "labEdges" .= labEdges g]
+instance (FromJSON a, FromJSON b) => FromJSON (Gr a b) where
+  parseJSON (Object v) = mkGraph <$> v .: "labNodes" <*> v .: "labEdges"
+  parseJSON _          = return G.empty

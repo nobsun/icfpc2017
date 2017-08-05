@@ -160,3 +160,4 @@ instance FromJSON Score
 
 getMap :: FilePath -> IO (Maybe Map)
 getMap path = BSL.readFile path >>= return.decode
+
