@@ -39,18 +39,18 @@ instance Punter.IsPunter Punter where
   play P.PrevMoves{ P.state = Just st1, P.move = moves } =
     P.MyMove
     { P.move  = move
-    , P.state = Just st2
+    , P.state = Just st3
     }
     where
       punterId = P.punter (setupInfo :: P.Setup)
 
-      Punter{ setupInfo = setupInfo, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
+      st2@Punter{ setupInfo = setupInfo, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
 
-      (move, st2) =
+      (move, st3) =
         case Set.toList availableRivers1 of
           [] ->
             ( P.MvPass punterId
-            , st1
+            , st2
             )
           r@(s,t):_ ->
             ( P.MvClaim
@@ -58,7 +58,7 @@ instance Punter.IsPunter Punter where
               , P.source = s
               , P.target = t
               }
-            , st1
+            , st2
               { availableRivers = Set.delete r availableRivers1
               , myRivers = Set.insert r myRivers1
               }
