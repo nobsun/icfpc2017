@@ -8,4 +8,5 @@ offline mode では ready, punter の move,  stop に state が追加される�
 
 Futures-v1.0
 
-settings があるときだけ、futures の宣言を行なうことができる。
+settings があるときだけ、ready で、 futures の宣言を行なうことができる。
+offline mode のときにはこれにさらに state が追加される?
