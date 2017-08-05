@@ -26,10 +26,7 @@ toNRiver (River s t) = toNRiver' s t
 deNRiver :: NRiver -> (SiteId, SiteId)
 deNRiver (NRiver p) = p
 
-data NClaim = NClaim
-  { claimer :: PunterId
-  , nriver  :: NRiver
-  }
+type NClaim = (PunterId, NRiver)
 
 toNClaim :: (PunterId, SiteId, SiteId) -> NClaim
-toNClaim (pid, src, tar) = NClaim pid $ toNRiver' src tar
+toNClaim (pid, src, tar) = (pid, toNRiver' src tar)
