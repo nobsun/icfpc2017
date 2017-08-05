@@ -8,7 +8,6 @@ module OfflinePlay where
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Char (isDigit)
 import qualified Data.Aeson as J
-import Data.Maybe
 import Data.Monoid
 import Data.Proxy
 import qualified Data.Text as T
@@ -28,26 +27,28 @@ runPunterOffline punter = do
       runPunterOffline' "sampou-offline" punter
 
 runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
-runPunterOffline' name _ = do
-  send (P.HandshakePunter{ P.me=name })
-  (_::P.HandshakeServer) <- decodeIO "handshake" =<< recv
-  setupInfo <- decodeIO "setup" =<< recv
-  let ready = Punter.setup setupInfo :: P.Ready a
-  s <- maybe (fail "runPunterOffline': state must exist for offline-mode") return $ P.state (ready :: P.Ready a)
-  send ready
-  let loop :: a -> IO ()
-      loop s' = do
-        (v :: J.Value) <- decodeIO "PrevMoves" =<< recv
-        case J.fromJSON v of
-          J.Success (moves :: P.PrevMoves a) -> do
-            let move = Punter.play $ moves{ P.state = Just s' }
-            send (move :: P.MyMove a)
-            loop $ fromJust $ P.state (move :: P.MyMove a)
-          J.Error _ -> do
-            case J.fromJSON v of
-              J.Success (_ :: P.Scoring) -> return ()
-              J.Error _ -> error ("unknown messsage: " ++ show v)
-  loop s
+runPunterOffline' name _ =
+    loop
+  where
+    loop = do
+      send (P.HandshakePunter{ P.me=name })
+      (_::P.HandshakeServer) <- decodeIO "handshake" =<< recv
+      jsonv <- decodeIO "multiplex" =<< recv :: IO J.Value
+      case J.fromJSON jsonv of
+        J.Success (moves :: P.PrevMoves a) -> do  --- check gameplay first
+          let move = Punter.play moves
+          send move
+          loop
+
+        J.Error _  -> case J.fromJSON jsonv of
+          J.Success (setupInfo :: P.Setup) -> do
+            let ready = Punter.setup setupInfo :: P.Ready a
+            send ready
+            loop
+
+          J.Error _ -> case J.fromJSON jsonv of
+            J.Success (_ :: P.Scoring)  ->  return ()
+            J.Error _  -> fail ("unknown messsage: " ++ show jsonv)
 
 send :: J.ToJSON a => a -> IO ()
 send x = do
