@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Protocol
                      , GameState
+                     , NormTypes
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny

@@ -4,6 +4,7 @@
 
 module NormTypes ( NRiver
                  , toNRiver
+                 , deNRiver
                  , NClaim
                  , toNClaim
                  ) where
@@ -21,6 +22,9 @@ data NRiver = NRiver
 
 toNRiver :: River -> NRiver
 toNRiver (River s t) = if s < t then NRiver s t else NRiver t s
+
+deNRiver :: NRiver -> (SiteId,SiteId)
+deNRiver (NRiver s t) = (s, t)
 
 data NClaim = NClaim
   { claimer :: PunterId

@@ -13,6 +13,7 @@ import Data.Graph.Inductive.Graph as G
 import Data.Graph.Inductive.PatriciaTree
 
 import Protocol
+import NormTypes
 
 data GameState = GameState
   { gs_punter  :: Int
@@ -36,16 +37,13 @@ initGameState (Setup spunter spunters smap setting) = GameState
   }
 
 inigraph :: Map -> Gr SiteLabel RiverLabel
-inigraph (Map ss rs ms) = mkGraph (Prelude.map (lnode . deSite) ss) (Prelude.map (ledge () . deRiver) rs)
+inigraph (Map ss rs ms) = mkGraph (Prelude.map (lnode . deSite) ss) (Prelude.map (ledge () . deNRiver . toNRiver) rs)
 
 mineList :: Map -> [Node]
 mineList (Map _ _ ms) = ms
 
 deSite :: Site -> SiteId
 deSite (Site i) = i
-
-deRiver :: River -> (SiteId, SiteId)
-deRiver (River s t) = (s, t)
 
 lnode :: SiteId -> LNode SiteLabel
 lnode i = (i,())
