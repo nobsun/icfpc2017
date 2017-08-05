@@ -7,6 +7,7 @@
 module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
+import qualified Data.List as L (uncons)
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
@@ -16,8 +17,8 @@ import Punter
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , availableRivers :: Set (Int,Int)
-  , myRivers :: Set (Int,Int)
+  , availableRivers :: Set (P.SiteId,P.SiteId)
+  , myRivers :: Set (P.SiteId,P.SiteId)
   }
   deriving (Generic)
 
@@ -48,11 +49,11 @@ instance Punter.IsPunter Punter where
 
       (move, st2) =
         case choice p' of
-          [] ->
+          Nothing ->
             ( P.MvPass punterId
             , st1
             )
-          r@(s,t):_ ->
+          Just r@(s,t) ->
             ( P.MvClaim
               { P.punter = punterId
               , P.source = s
@@ -71,5 +72,7 @@ update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 
   { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
   }
 
-choice :: Punter -> [(Int, Int)]
-choice Punter { availableRivers = ars } = Set.toList ars
+choice :: Punter -> Maybe (P.SiteId, P.SiteId)
+choice Punter { availableRivers = ars } = safeHead $ Set.toList ars
+  where
+    safeHead = fmap fst . L.uncons
