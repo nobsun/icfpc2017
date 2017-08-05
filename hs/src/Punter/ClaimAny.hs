@@ -41,43 +41,21 @@ instance Punter.IsPunter Punter where
         }
     , P.futures = Nothing
     }
-  play P.PrevMoves{ P.state = Just st1, P.move = moves } =
-    P.MyMove
-    { P.move  = move
-    , P.state = Just st2
+
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } =
+    p1
+    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
+    , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
     }
     where
       punterId = P.punter (si :: P.Setup)
 
-      p'@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
-
-      (move, st2) =
-        case choice p' of
-          Nothing ->
-            ( P.MvPass punterId
-            , st1
-            )
-          Just nr ->
-            ( P.MvClaim
-              { P.punter = punterId
-              , P.source = s
-              , P.target = t
-              }
-            , st1
-              { availableRivers = Set.delete nr availableRivers1
-              , myRivers = Set.insert nr myRivers1
-              }
-            )   where (s, t) = deNRiver nr
+  chooseMoveSimple Punter{ setupInfo = si, availableRivers = availableRivers1 } =
+    case listToMaybe $ Set.toList $ availableRivers1 of
+      Nothing -> P.MvPass punterId
+      Just r | (s,t) <- deNRiver r -> P.MvClaim punterId s t
+    where
+      punterId = P.punter (si :: P.Setup)
 
 instance Punter.IsOfflinePunter Punter where
   offlineStage = stage
-
--- 他のプレイヤーの打った手による状態更新
-update :: P.Moves -> Punter -> Punter
-update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
-  p1
-  { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-  }
-
-choice :: Punter -> Maybe NRiver
-choice Punter { availableRivers = ars } = listToMaybe $ Set.toList ars

@@ -7,7 +7,22 @@ import qualified Protocol as P
 
 class (ToJSON a, FromJSON a) => IsPunter a where
   setup :: P.Setup -> P.Ready a
-  play  :: P.PrevMoves a -> P.MyMove a
+
+  -- 自分を含む各Punterの前ターンの手の情報を受け取って情報を更新
+  applyMoves :: P.Moves -> a -> a
+
+　-- chooseMoveを実装するのに通常はこちらを実装する
+  chooseMoveSimple :: a -> P.Move
+
+  -- 基本的にはchooseMoveSimpleを実装することを想定していて、
+  -- 状態を更新することは想定していないが、
+  -- コストの大きい探索結果を保存したい場合などにはこちらを定義する
+  chooseMove :: a -> P.MyMove a
+  chooseMove a = P.MyMove (chooseMoveSimple a) (Just a)
+
+play :: IsPunter a => P.PrevMoves a -> P.MyMove a
+play (P.PrevMoves moves (Just a)) = chooseMove (applyMoves moves a)
+play (P.PrevMoves _moves Nothing) = error "Punter.play: no state is available"
 
 data OfflineStage
   = Setup
