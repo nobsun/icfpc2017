@@ -13,14 +13,15 @@ import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
 import Punter
+import NormTypes (NRiver, toNRiver', deNRiver)
 
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , availableRivers :: Set (P.SiteId,P.SiteId)
-  , myRivers :: Set (P.SiteId,P.SiteId)
+  , availableRivers :: Set NRiver
+  , myRivers :: Set NRiver
   }
-  deriving (Generic)
+  deriving (Generic, Show)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter
@@ -32,7 +33,7 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , availableRivers = Set.fromList [(s',t') | P.River s' t' <- P.rivers (P.map s)]
+        , availableRivers = Set.fromList [ toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
         , myRivers = Set.empty
         }
     , P.futures = Nothing
@@ -53,24 +54,24 @@ instance Punter.IsPunter Punter where
             ( P.MvPass punterId
             , st1
             )
-          Just r@(s,t) ->
+          Just nr ->
             ( P.MvClaim
               { P.punter = punterId
               , P.source = s
               , P.target = t
               }
             , st1
-              { availableRivers = Set.delete r availableRivers1
-              , myRivers = Set.insert r myRivers1
+              { availableRivers = Set.delete nr availableRivers1
+              , myRivers = Set.insert nr myRivers1
               }
-            )
+            )   where (s, t) = deNRiver nr
 
 -- 他のプレイヤーの打った手による状態更新
 update :: P.Moves -> Punter -> Punter
 update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
   p1
-  { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
+  { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
   }
 
-choice :: Punter -> Maybe (P.SiteId, P.SiteId)
+choice :: Punter -> Maybe NRiver
 choice Punter { availableRivers = ars } = listToMaybe $ Set.toList ars
