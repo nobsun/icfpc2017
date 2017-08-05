@@ -30,7 +30,7 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , availableRivers = Set.fromList [(s,t) | P.River s t <- P.rivers (P.map s)]
+        , availableRivers = Set.fromList [(s',t') | P.River s' t' <- P.rivers (P.map s)]
         , myRivers = Set.empty
         }
     , P.futures = Nothing
