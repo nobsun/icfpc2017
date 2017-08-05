@@ -1,0 +1,11 @@
+メッセージ形式
+
+<バイト数>:<json 文字列>
+
+Offline mode
+
+offline mode では ready, punter の move,  stop に state が追加される。
+
+Futures-v1.0
+
+settings があるときだけ、futures の宣言を行なうことができる。
