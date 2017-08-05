@@ -28,6 +28,10 @@ JMove genmove(Game& game, int player) {
   }
   int score0 = game.score(player);
   cerr << "SCORE:" << score0 << endl;
+  for (int p = 0; p < game.game.punters; p++) {
+    int score = game.score(p);
+    cerr << "SCORE(" << p << "):" << score << endl;
+  }
   int maxScore = score0;
   int maxMove = 0;
   for (size_t i = 0; i < openRivers.size(); i++) {
