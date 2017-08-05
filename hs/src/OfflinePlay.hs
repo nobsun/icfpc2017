@@ -57,15 +57,20 @@ send x = do
   B.hPutStr stdout $ B.pack (show (B.length json)) <> ":" <> json
   hFlush stdout
 
-recv :: J.FromJSON a => String -> IO a
-recv name = do
+recv' :: IO B.ByteString
+recv' = do
   len <- getLength []
   s <- B.hGet stdin len
   B.hPutStrLn stderr $ "<- " <> s
-  case J.decode s of
-    Nothing -> error ("failed to parse: " ++ name ++ ": " ++ show s)
-    Just a -> return a
+  return s
   where
     getLength cs = do
       c <- hGetChar stdin
       if isDigit c then getLength (c:cs) else return (read (reverse cs))
+
+recv :: J.FromJSON a => String -> IO a
+recv name = do
+  s <- recv'
+  case J.decode s of
+    Nothing -> error ("failed to parse: " ++ name ++ ": " ++ show s)
+    Just a -> return a
