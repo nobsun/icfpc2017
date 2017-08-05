@@ -18,14 +18,23 @@ library
   exposed-modules:     Protocol
                      , GameState
                      , NormTypes
+                     , ClaimedGraph
+                     , OnlinePlay
+                     , OfflinePlay
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny
+                     , Punter.ClaimGreedy
+                     , Dijkstra
+  ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
                      , bytestring
                      , containers
+                     , hashable
+                     , heaps
+                     , network
                      , text >= 1.2.2.1
                      , unordered-containers
   default-language:    Haskell2010
@@ -33,7 +42,7 @@ library
 executable TestPunter
   hs-source-dirs:      app
   main-is:             TestPunter.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
@@ -47,12 +56,24 @@ executable TestPunter
 executable TestPunterSakai
   hs-source-dirs:      app
   main-is:             TestPunterSakai.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
                      , bytestring
                      , network
+                     , text >= 1.2.2.1
+                     , hs
+  default-language:    Haskell2010
+
+executable TestPunterOffline
+  hs-source-dirs:      app
+  main-is:             TestPunterOffline.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , fgl >= 5.5.3.1
+                     , aeson >= 1.0.2.1
+                     , bytestring
                      , text >= 1.2.2.1
                      , hs
   default-language:    Haskell2010
@@ -63,7 +84,7 @@ test-suite hs-test
   main-is:             Spec.hs
   build-depends:       base
                      , hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
 source-repository head

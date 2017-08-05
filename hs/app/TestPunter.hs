@@ -3,12 +3,12 @@
 
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
 import Data.Char (isDigit)
-import Data.Aeson (FromJSON, ToJSON, encode, decode)
+import Data.Aeson (ToJSON, encode, decode)
 import Data.List (isPrefixOf, tails)
 import Debug.Trace (traceShow)
 import Network.Socket
 import Control.Exception (bracket)
-import Control.Monad (forever, replicateM)
+import Control.Monad (forever, replicateM, void)
 import System.IO
 import System.Environment
 
@@ -32,19 +32,17 @@ main = do
         (\h -> do
           hSetBuffering h NoBuffering
           output h (HandshakePunter{me="sampou"})
-          input h
+          void $ input h
           str <- input h
           let pid = getPunterId str -- workaround
-          let msetup = decode (B.pack str)
-          case msetup :: Maybe Setup of
-            Just setup -> do
-              --let pid = (punter::Setup->Int) setup
-              output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
-              loop h pid
+          _setup <- maybe (fail "TestPunter: decode failure") return (decode (B.pack str) :: Maybe Setup)
+          --let pid = (punter::Setup->Int) setup
+          output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
+          loop h pid
         )
   where
     loop h pid = do
-      token <- fmap B.pack (input h)
+      _token <- fmap B.pack (input h)
 {- dummy -}
       output h (MvPass pid)
       loop h pid
