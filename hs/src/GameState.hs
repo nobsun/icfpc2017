@@ -8,8 +8,6 @@ module GameState where
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
-import Data.Text
-import Data.Graph.Inductive.Basic
 import Data.Graph.Inductive.Graph as G
 import Data.Graph.Inductive.PatriciaTree
 
@@ -38,7 +36,7 @@ initGameState (Setup spunter spunters smap _setting) = GameState
   }
 
 inigraph :: Map -> Gr SiteLabel RiverLabel
-inigraph (Map ss rs ms) = mkGraph (Prelude.map (lnode . deSite) ss) (Prelude.map (ledge () . deNRiver . toNRiver) rs)
+inigraph (Map ss rs _) = mkGraph (Prelude.map (lnode . deSite) ss) (Prelude.map (ledge () . deNRiver . toNRiver) rs)
 
 mineList :: Map -> [Node]
 mineList (Map _ _ ms) = ms
@@ -50,7 +48,7 @@ lnode :: SiteId -> LNode SiteLabel
 lnode i = (i,())
 
 ledge :: RiverLabel -> (SiteId, SiteId) -> LEdge RiverLabel
-ledge lab (s,t) = (s,t,lab)
+ledge lb (s,t) = (s,t,lb)
 
 instance ToJSON GameState where
   toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 3 })
