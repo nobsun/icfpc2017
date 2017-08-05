@@ -25,11 +25,11 @@ main = do
   hSetBuffering stdout LineBuffering
   [name, port] <- getArgs
   case name of
-    "pass" -> runPunterOnline (Proxy :: Proxy PassPunter.PassPunter) port
+    "pass" -> runPunterOnline (Proxy :: Proxy PassPunter.Punter) port
     _ -> error "unknown punter algorithm"
 
 test :: String -> IO ()
-test port = runPunterOnline (Proxy :: Proxy PassPunter.PassPunter) port
+test port = runPunterOnline (Proxy :: Proxy PassPunter.Punter) port
 
 runPunterOnline :: Punter.IsPunter a => Proxy a -> N.ServiceName -> IO ()
 runPunterOnline punter port = do
