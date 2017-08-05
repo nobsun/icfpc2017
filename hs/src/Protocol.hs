@@ -7,6 +7,7 @@ module Protocol where
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
+import qualified Data.ByteString.Lazy as BSL
 import Data.Text
 
 -- Handshake
@@ -119,7 +120,7 @@ instance ToJSON Moves
 instance FromJSON Moves
 
 data Move = MvClaim { claim :: Claim }
-          | MvPass { pass :: Punter}
+          | MvPass { pass :: PunterId }
           deriving (Generic, Show)
 
 instance ToJSON Move where
@@ -157,3 +158,5 @@ data Score = Score { punter :: PunterId
 instance ToJSON Score
 instance FromJSON Score
 
+getMap :: FilePath -> IO (Maybe Map)
+getMap path = BSL.readFile path >>= return.decode

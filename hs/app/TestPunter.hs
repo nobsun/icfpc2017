@@ -1,3 +1,4 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
@@ -36,14 +37,14 @@ main = do
           case msetup :: Maybe Setup of
             Just setup -> do
               --let pid = (punter::Setup->Int) setup
-              output h (ReadyOn{ready=pid})
+              output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
               loop h pid
         )
   where
     loop h pid = do
       token <- fmap B.pack (input h)
 {- dummy -}
-      output h (MvPass{pass=Punter pid})
+      output h (MvPass{pass=pid})
       loop h pid
 {- not work
       case decode token :: Maybe PrevMoves of
