@@ -21,7 +21,7 @@ instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
     { P.ready   = P.punter (s :: P.Setup)
-    , P.state   = Just $ P.GState $ Punter (P.punter (s :: P.Setup))
+    , P.state   = Just $ Punter (P.punter (s :: P.Setup))
     , P.futures = Nothing
     }
   play prevMoves =
@@ -30,7 +30,7 @@ instance Punter.IsPunter Punter where
         P.MvPass
         { P.pass =
             case fromJust (P.state (prevMoves :: P.PrevMoves Punter)) of
-              P.GState (Punter punter) -> P.Punter punter
+              Punter punter -> P.Punter punter
         }
     , P.state = P.state (prevMoves :: P.PrevMoves Punter)
     }
