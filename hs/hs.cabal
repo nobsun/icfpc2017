@@ -1,5 +1,5 @@
 name:                hs
-version:             0.1.0.0
+version:             0.1.0.1
 -- synopsis:
 -- description:
 homepage:            https://github.com/nobsun/icfpc2017/hs#readme
@@ -15,9 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-                     , Online
-                     , InternalJSON
+  exposed-modules:     Protocol
                      , GameState
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
