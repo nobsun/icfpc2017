@@ -24,12 +24,15 @@ library
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny
+                     , Dijkstra
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
                      , bytestring
                      , containers
+                     , hashable
+                     , heaps
                      , network
                      , text >= 1.2.2.1
                      , unordered-containers
