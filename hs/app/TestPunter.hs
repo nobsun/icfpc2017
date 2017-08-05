@@ -3,7 +3,7 @@
 
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
 import Data.Char (isDigit)
-import Data.Aeson (FromJSON, ToJSON, encode, decode)
+import Data.Aeson (ToJSON, encode, decode)
 import Data.List (isPrefixOf, tails)
 import Debug.Trace (traceShow)
 import Network.Socket
