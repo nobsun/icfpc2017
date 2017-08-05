@@ -24,6 +24,7 @@ library
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny
+                     , Punter.ClaimGreedy
                      , Dijkstra
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
