@@ -33,7 +33,7 @@ data Setup = Setup
 
 data Ready a = ReadyOn
   { ready :: PunterId
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   , futures :: Maybe Futures
   } deriving (Generic, Show)
 
@@ -49,12 +49,12 @@ instance FromJSON a => FromJSON (Ready a)
 
 data PrevMoves a = PrevMoves
   { move :: Moves
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   } deriving (Generic, Show)
 
 data MyMove a = MyMove
   { move :: Move
-  , state :: Maybe (GState a)
+  , state :: Maybe a
   } deriving (Generic, Show)
 
 instance ToJSON a => ToJSON (PrevMoves a) where
@@ -85,11 +85,6 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
-data GState a = GState { state :: a } deriving (Generic, Show)
-
-instance ToJSON a => ToJSON (GState a)
-instance FromJSON a => FromJSON (GState a)
-
 data Settings = Settings { futures :: Bool } deriving (Generic, Show)
 type Futures = [Future]
 
@@ -103,8 +98,8 @@ instance FromJSON Settings
 instance ToJSON Future
 instance FromJSON Future
 
-data Site = Site { id :: SiteId } deriving (Generic, Show)
-data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show)
+data Site = Site { id :: SiteId } deriving (Generic, Show, Eq, Ord)
+data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show, Eq, Ord)
 
 instance ToJSON Site
 instance ToJSON River
