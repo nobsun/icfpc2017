@@ -63,7 +63,11 @@ instance ToJSON a => ToJSON (PrevMoves a) where
 instance FromJSON a => FromJSON (PrevMoves a)
 
 instance ToJSON a => ToJSON (MyMove a) where
-  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+  toJSON (MyMove m (Just s)) = Object $ HashMap.union m' s'
+    where
+      Object m' = toJSON m
+      Object s' = toJSON s
+  toJSON (MyMove m Nothing)  = toJSON m
 instance FromJSON a => FromJSON (MyMove a)
 
 -- Scoring
