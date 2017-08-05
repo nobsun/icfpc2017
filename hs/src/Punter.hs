@@ -1,7 +1,4 @@
-{-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+
 module Punter where
 
 import qualified Data.Aeson as J
