@@ -9,19 +9,19 @@ import Data.Maybe
 import qualified Protocol as P
 import Punter
 
-data PassPunter = PassPunter P.PunterId
+data Punter = Punter P.PunterId
 
-instance J.ToJSON PassPunter where
-  toJSON (PassPunter pid) = J.toJSON pid
+instance J.ToJSON Punter where
+  toJSON (Punter pid) = J.toJSON pid
 
-instance J.FromJSON PassPunter where
-  parseJSON v = PassPunter <$> J.parseJSON v
+instance J.FromJSON Punter where
+  parseJSON v = Punter <$> J.parseJSON v
 
-instance Punter.Punter PassPunter where
+instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
     { P.ready   = P.punter (s :: P.Setup)
-    , P.state   = Just $ P.GState $ PassPunter (P.punter (s :: P.Setup))
+    , P.state   = Just $ Punter (P.punter (s :: P.Setup))
     , P.futures = Nothing
     }
   play prevMoves =
@@ -29,9 +29,8 @@ instance Punter.Punter PassPunter where
     { P.move  =
         P.MvPass
         { P.pass =
-            case fromJust (P.state (prevMoves :: P.PrevMoves PassPunter)) of
-              P.GState (PassPunter punter) -> P.Punter punter
+            case fromJust (P.state (prevMoves :: P.PrevMoves Punter)) of
+              Punter punter -> P.Punter punter
         }
-    , P.state = P.state (prevMoves :: P.PrevMoves PassPunter)
+    , P.state = P.state (prevMoves :: P.PrevMoves Punter)
     }
-
