@@ -45,12 +45,12 @@ instance Punter.IsPunter Punter where
       
       punterId = P.punter (setupInfo :: P.Setup)
 
-      ars = availableRivers1 `Set.difference` Set.fromList [e | P.MvClaim (P.Claim _punter' source target) <- moves, e <- [(source,target), (target,source)]]
+      ars = availableRivers1 `Set.difference` Set.fromList [e | P.MvClaim _punter' source target <- moves, e <- [(source,target), (target,source)]]
       (move, availableRivers2, myRivers2) =
         case Set.toList ars of
-          [] -> (P.MvPass P.Punter{ P.punter = punterId }, ars, myRivers1)
+          [] -> (P.MvPass punterId, ars, myRivers1)
           r@(s,t):_ ->
-            ( P.MvClaim $ P.Claim
+            ( P.MvClaim
               { P.punter = punterId
               , P.source = s
               , P.target = t
