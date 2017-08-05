@@ -1,7 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
 import Data.Proxy
