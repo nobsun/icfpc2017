@@ -15,4 +15,4 @@ data OfflineStage
   deriving (Eq, Ord, Show)
 
 class IsPunter a => IsOfflinePunter a where
-  offlinePhase :: a -> OfflineStage
+  offlineStage :: a -> OfflineStage
