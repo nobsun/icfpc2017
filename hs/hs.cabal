@@ -32,6 +32,7 @@ library
                      , aeson >= 1.0.2.1
                      , bytestring
                      , containers
+                     , transformers
                      , hashable
                      , heaps
                      , network
