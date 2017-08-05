@@ -30,39 +30,39 @@ data Setup = Setup
   , setting :: Maybe Settings
   } deriving (Generic, Show)
 
-data Ready = ReadyOn
+data Ready a = ReadyOn
   { ready :: PunterId
-  , state :: Maybe GState
+  , state :: Maybe (GState a)
   , futures :: Maybe Futures
   } deriving (Generic, Show)
 
 instance ToJSON Setup where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
-instance ToJSON Ready where
+instance ToJSON a => ToJSON (Ready a) where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
 
 instance FromJSON Setup
-instance FromJSON Ready
+instance FromJSON a => FromJSON (Ready a)
 
 --  Gameplay
 
-data PrevMoves = PrevMoves
+data PrevMoves a = PrevMoves
   { move :: Moves
-  , state :: Maybe GState
+  , state :: Maybe (GState a)
   } deriving (Generic, Show)
 
-data MyMove = MyMove
+data MyMove a = MyMove
   { move :: Move
-  , state :: Maybe GState
+  , state :: Maybe (GState a)
   } deriving (Generic, Show)
 
-instance ToJSON PrevMoves where
+instance ToJSON a => ToJSON (PrevMoves a) where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
-instance FromJSON PrevMoves
+instance FromJSON a => FromJSON (PrevMoves a)
 
-instance ToJSON MyMove where
+instance ToJSON a => ToJSON (MyMove a) where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
-instance FromJSON MyMove
+instance FromJSON a => FromJSON (MyMove a)
 
 -- Scoring
 
@@ -84,10 +84,10 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
-data GState = GState { state :: () } deriving (Generic, Show)
+data GState a = GState { state :: a } deriving (Generic, Show)
 
-instance ToJSON GState
-instance FromJSON GState
+instance ToJSON a => ToJSON (GState a)
+instance FromJSON a => FromJSON (GState a)
 
 data Settings = Settings { futures :: Bool } deriving (Generic, Show)
 type Futures = [Future]
