@@ -12,8 +12,7 @@ import System.IO
 import System.Environment
 
 
-import Online
-import InternalJSON
+import Protocol
 
 main :: IO ()
 main = do
