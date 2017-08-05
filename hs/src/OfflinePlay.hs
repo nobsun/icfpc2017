@@ -72,5 +72,5 @@ recv :: J.FromJSON a => String -> IO a
 recv name = do
   s <- recv'
   case J.decode s of
-    Nothing -> error ("failed to parse: " ++ name ++ ": " ++ show s)
-    Just a -> return a
+    Nothing  ->  fail $ "failed to parse: " ++ name ++ ": " ++ show s
+    Just a   ->  return a
