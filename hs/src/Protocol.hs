@@ -7,6 +7,7 @@ module Protocol where
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
+import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.ByteString.Lazy as BSL
 import Data.Text
 
@@ -114,30 +115,46 @@ data Moves = Moves
 instance ToJSON Moves
 instance FromJSON Moves
 
-data Move = MvClaim { claim :: Claim }
-          | MvPass { pass :: Punter }
-          deriving (Generic, Show)
+data Move
+  = MvClaim
+    { punter :: PunterId
+    , source :: SiteId
+    , target :: SiteId
+    }
+  | MvPass
+    { punter :: PunterId
+    }
+  deriving (Generic, Show)
 
 instance ToJSON Move where
-  toJSON = genericToJSON (defaultOptions { sumEncoding = UntaggedValue  })
+  toJSON (MvClaim punterId src tgt) = object $
+    [ "claim" .=
+        object
+        [ "punter" .= toJSON punterId
+        , "source" .= toJSON src
+        , "target" .= toJSON tgt
+        ]
+    ]
+  toJSON (MvPass punterId) = object $
+    [ "pass" .= object [ "punter" .= toJSON punterId ]
+    ]
   
 instance FromJSON Move where
-  parseJSON = genericParseJSON (defaultOptions { sumEncoding = UntaggedValue  })
-
-
-data Punter = Punter { punter :: PunterId } deriving (Generic, Show)
-
-instance ToJSON Punter
-instance FromJSON Punter
-
-data Claim = Claim
-  { punter :: PunterId
-  , source :: SiteId
-  , target :: SiteId
-  } deriving (Generic, Show)
-
-instance ToJSON Claim
-instance FromJSON Claim
+  parseJSON = do
+    withObject "Move" $ \obj ->
+      case HashMap.lookup "claim" obj of
+        Just claim -> do
+          let f obj2 = 
+                MvClaim
+                <$> (obj2 .: "punter")
+                <*> (obj2 .: "source")
+                <*> (obj2 .: "target")
+          withObject "Claim" f claim
+        Nothing ->
+          case HashMap.lookup "pass" obj of
+            Just pass -> do
+              withObject "pass" (\obj2 -> MvPass <$> (obj2 .: "punter")) pass
+            Nothing -> fail $ show obj ++ " is not valid Move"
 
 data Stop = Stop { moves :: [Move]
                  , scores :: [Score]
