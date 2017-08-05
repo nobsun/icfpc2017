@@ -93,9 +93,11 @@ instance Punter.IsPunter Punter where
 
 -- 他のプレイヤーの打った手による状態更新
 update :: P.Moves -> Punter -> Punter
-update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
+update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } =
   p1
   { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
+  , myRivers = myRivers1 `Set.union` Set.fromList [(s,t) | P.MvClaim _punter' s t <- moves]
+  , mySites = mySites1 `Set.union` Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [s, t]]
   }
 
 choice :: Punter -> Maybe (Int, Int)
