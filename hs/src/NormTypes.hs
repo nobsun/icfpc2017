@@ -3,6 +3,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 
 module NormTypes ( NRiver
+                 , toNRiver'
                  , toNRiver
                  , deNRiver
                  , NClaim
