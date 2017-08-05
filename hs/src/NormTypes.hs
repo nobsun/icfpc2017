@@ -5,13 +5,13 @@
 module NormTypes ( NRiver
                  , toNRiver
                  , deNRiver
-                 , NClaim (..)
+                 , NClaim
                  , toNClaim
                  ) where
 
 import Protocol
 
-import GHC.Generics
+-- import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
 
