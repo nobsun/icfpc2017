@@ -1,3 +1,4 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 import Data.ByteString.Lazy.Char8 as B (pack, unpack)
@@ -36,7 +37,7 @@ main = do
           case msetup :: Maybe Setup of
             Just setup -> do
               --let pid = (punter::Setup->Int) setup
-              output h (ReadyOn{ready=pid})
+              output h (ReadyOn{ready=pid, state=Nothing, futures=Nothing} :: Ready ())
               loop h pid
         )
   where
