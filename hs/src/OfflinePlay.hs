@@ -5,8 +5,12 @@
 
 module OfflinePlay where
 
+import Control.Applicative
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Maybe (MaybeT (..))
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Char (isDigit)
+import Data.Aeson (Result (Success, Error))
 import qualified Data.Aeson as J
 import Data.Monoid
 import Data.Proxy
@@ -34,21 +38,19 @@ runPunterOffline' name _ =
       send (P.HandshakePunter{ P.me=name })
       (_::P.HandshakeServer) <- recv "handshake"
       jsonv <- recv "multiplex"
-      case J.fromJSON jsonv of
-        J.Success (moves :: P.PrevMoves a) -> do  --- check gameplay first
-          let move = Punter.play moves
-          send move
-          loop
 
-        J.Error _  -> case J.fromJSON jsonv of
-          J.Success (setupInfo :: P.Setup) -> do
-            let ready = Punter.setup setupInfo :: P.Ready a
-            send ready
-            loop
+      (maybe (fail $ "unknown messsage: " ++ show jsonv) pure =<<) . runMaybeT $
+        ((\moves     -> lift $ send (Punter.play moves)                   *> loop) =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result (P.PrevMoves a)))       <|>     --- check gameplay first
+        ((\setupInfo -> lift $ send (Punter.setup setupInfo :: P.Ready a) *> loop) =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result P.Setup))               <|>
+        (const (pure ())                                                           =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result P.Scoring))
 
-          J.Error _ -> case J.fromJSON jsonv of
-            J.Success (_ :: P.Scoring)  ->  return ()
-            J.Error _  -> fail ("unknown messsage: " ++ show jsonv)
+result :: (String -> b) -> (a -> b) -> Result a -> b
+result f g r = case r of
+  Error   s  ->  f s
+  Success x  ->  g x
 
 send :: J.ToJSON a => a -> IO ()
 send x = do
