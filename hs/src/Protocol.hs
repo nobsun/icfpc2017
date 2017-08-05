@@ -120,7 +120,7 @@ instance ToJSON Moves
 instance FromJSON Moves
 
 data Move = MvClaim { claim :: Claim }
-          | MvPass { pass :: PunterId }
+          | MvPass { pass :: Punter }
           deriving (Generic, Show)
 
 instance ToJSON Move where

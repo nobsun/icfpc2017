@@ -44,7 +44,7 @@ main = do
     loop h pid = do
       token <- fmap B.pack (input h)
 {- dummy -}
-      output h (MvPass{pass=pid})
+      output h (MvPass{pass=Punter pid})
       loop h pid
 {- not work
       case decode token :: Maybe PrevMoves of
