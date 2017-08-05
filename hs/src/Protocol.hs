@@ -98,8 +98,8 @@ instance FromJSON Settings
 instance ToJSON Future
 instance FromJSON Future
 
-data Site = Site { id :: SiteId } deriving (Generic, Show)
-data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show)
+data Site = Site { id :: SiteId } deriving (Generic, Show, Eq, Ord)
+data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show, Eq, Ord)
 
 instance ToJSON Site
 instance ToJSON River
