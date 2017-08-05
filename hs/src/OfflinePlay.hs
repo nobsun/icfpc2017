@@ -30,14 +30,14 @@ runPunterOffline punter = do
 runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
 runPunterOffline' name _ = do
   send (P.HandshakePunter{ P.me=name })
-  (_::P.HandshakeServer) <- recv "handshake"
-  setupInfo <- recv "setup"
+  (_::P.HandshakeServer) <- decodeIO "handshake" =<< recv
+  setupInfo <- decodeIO "setup" =<< recv
   let ready = Punter.setup setupInfo :: P.Ready a
   s <- maybe (fail "runPunterOffline': state must exist for offline-mode") return $ P.state (ready :: P.Ready a)
   send ready
   let loop :: a -> IO ()
       loop s' = do
-        (v :: J.Value) <- recv "PrevMoves"
+        (v :: J.Value) <- decodeIO "PrevMoves" =<< recv
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
             let move = Punter.play $ moves{ P.state = Just s' }
@@ -57,8 +57,8 @@ send x = do
   L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
 
-recv' :: IO L8.ByteString
-recv' = do
+recv :: IO L8.ByteString
+recv = do
   len <- getLength []
   s <- L8.hGet stdin len
   L8.hPutStrLn stderr $ "<- " <> s
@@ -68,9 +68,9 @@ recv' = do
       c <- hGetChar stdin
       if isDigit c then getLength (c:cs) else return (read (reverse cs))
 
-recv :: J.FromJSON a => String -> IO a
-recv name = do
-  s <- recv'
-  case J.decode s of
-    Nothing  ->  fail $ "failed to parse: " ++ name ++ ": " ++ show s
-    Just a   ->  return a
+decodeIO :: J.FromJSON a => String -> L8.ByteString -> IO a
+decodeIO name s =
+  maybe
+  (fail $ "failed to parse: " ++ name ++ ": " ++ show s)
+  return
+  $ J.decode s
