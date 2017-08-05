@@ -44,10 +44,10 @@ instance Punter.IsPunter Punter where
     where
       punterId = P.punter (si :: P.Setup)
 
-      Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
+      p'@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
 
       (move, st2) =
-        case Set.toList availableRivers1 of
+        case choice p' of
           [] ->
             ( P.MvPass punterId
             , st1
@@ -70,3 +70,6 @@ update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 
   p1
   { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
   }
+
+choice :: Punter -> [(Int, Int)]
+choice Punter { availableRivers = ars } = Set.toList ars
