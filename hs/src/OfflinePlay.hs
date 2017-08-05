@@ -32,8 +32,8 @@ runPunterOffline' name _ =
   where
     loop = do
       send (P.HandshakePunter{ P.me=name })
-      (_::P.HandshakeServer) <- decodeIO "handshake" =<< recv
-      jsonv <- decodeIO "multiplex" =<< recv :: IO J.Value
+      (_::P.HandshakeServer) <- recv "handshake"
+      jsonv <- recv "multiplex"
       case J.fromJSON jsonv of
         J.Success (moves :: P.PrevMoves a) -> do  --- check gameplay first
           let move = Punter.play moves
@@ -58,20 +58,16 @@ send x = do
   L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
 
-recv :: IO L8.ByteString
-recv = do
+recv :: J.FromJSON a => String -> IO a
+recv name = do
   len <- getLength []
   s <- L8.hGet stdin len
   L8.hPutStrLn stderr $ "<- " <> s
-  return s
+  maybe
+    (fail $ "failed to parse: " ++ name ++ ": " ++ show s)
+    return
+    $ J.decode s
   where
     getLength cs = do
       c <- hGetChar stdin
       if isDigit c then getLength (c:cs) else return (read (reverse cs))
-
-decodeIO :: J.FromJSON a => String -> L8.ByteString -> IO a
-decodeIO name s =
-  maybe
-  (fail $ "failed to parse: " ++ name ++ ": " ++ show s)
-  return
-  $ J.decode s

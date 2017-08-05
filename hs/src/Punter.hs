@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+
 module Punter where
 
 -- import GHC.Generics (Generic)
