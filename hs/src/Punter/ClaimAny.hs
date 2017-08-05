@@ -7,7 +7,7 @@
 module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
-import qualified Data.List as L (uncons)
+import Data.Maybe (listToMaybe)
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
@@ -73,6 +73,4 @@ update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 
   }
 
 choice :: Punter -> Maybe (P.SiteId, P.SiteId)
-choice Punter { availableRivers = ars } = safeHead $ Set.toList ars
-  where
-    safeHead = fmap fst . L.uncons
+choice Punter { availableRivers = ars } = listToMaybe $ Set.toList ars
