@@ -5,7 +5,7 @@
 module NormTypes ( NRiver
                  , toNRiver
                  , deNRiver
-                 , NClaim (..)
+                 , NClaim
                  , toNClaim
                  ) where
 
