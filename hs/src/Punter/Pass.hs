@@ -23,10 +23,7 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $ Punter (P.punter (s :: P.Setup))
     , P.futures = Nothing
     }
-  play prevMoves =
-    P.MyMove
-    { P.move  = P.MvPass punterId
-    , P.state = P.state (prevMoves :: P.PrevMoves Punter)
-    }
-    where
-      Just (Punter punterId) = P.state (prevMoves :: P.PrevMoves Punter)
+
+  applyMoves _ = id
+
+  chooseMoveSimple (Punter pid) = P.MvPass pid

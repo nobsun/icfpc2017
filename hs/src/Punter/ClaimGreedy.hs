@@ -64,65 +64,42 @@ instance Punter.IsPunter Punter where
       scores :: IntMap (IntMap Integer)
       scores = IntMap.fromList [(mine, IntMap.fromList [(site,d*d) | (site, (d, _)) <- HashMap.toList (dijkstra g [mine])]) | mine <- P.mines m]
 
-  play P.PrevMoves{ P.state = Just st1, P.move = moves } =
-    P.MyMove
-    { P.move  = move
-    , P.state = Just st2
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } =
+    p1
+    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
+    , myRivers = myRivers2
+    , mySites = mySites2
     }
     where
       punterId = P.punter (si :: P.Setup)
 
-      p'@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1, mySites = mySites1 } = update moves st1
+      myRivers2 = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
 
-      (move, st2) =
-        case choice p' of
-          Nothing ->
-            ( P.MvPass punterId
-            , st1
-            )
-          Just r -> case deNRiver r of
-            (s, t) ->
-              ( P.MvClaim
-                { P.punter = punterId
-                , P.source = s
-                , P.target = t
-                }
-              , st1
-                { availableRivers = Set.delete r availableRivers1
-                , myRivers = myRivers2
-                , mySites = mySites2
-                }
-              )
+      mySites2 = fmap (IntSet.fromList . HashMap.keys . dijkstra g . IntSet.toList) mySites1
+        where
+          g :: HashMap P.SiteId [(P.SiteId, Integer, ())]
+          g = HashMap.fromListWith (++) [e | (src, tgt) <- fmap deNRiver $ Set.toList $ myRivers2, e <- [(src, [(tgt, 0, ())]), (tgt, [(src, 0, ())])]]
+
+  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, myRivers = myRivers1, mySites = mySites1 } =
+    if Set.null ars then
+      P.MvPass punterId 
+    else
+      let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) scores
+      in P.MvClaim punterId s t
+    where
+      punterId = P.punter (si :: P.Setup)
+
+      g0 :: HashMap P.SiteId [(P.SiteId, Integer, ())]
+      g0 = HashMap.fromListWith (++) [e | (src, tgt) <- fmap deNRiver $ Set.toList $ myRivers1, e <- [(src, [(tgt, 0, ())]), (tgt, [(src, 0, ())])]]
+  
+      scores = [(r, score r) | r <- Set.toList ars]
+  
+      score :: NRiver -> Integer
+      score r = sum [f r mine | mine <- P.mines (P.map si)]
+        where
+          f :: NRiver -> P.SiteId -> Integer
+          f (deNRiver -> (s,t)) mine = sum [IntMap.findWithDefault 0 site tbl1 | site <- reachableSites]
             where
-              myRivers2 = Set.insert r myRivers1
-              mySites2 = fmap (IntSet.fromList . HashMap.keys . dijkstra g . IntSet.toList) mySites1
-                where
-                  g :: HashMap P.SiteId [(P.SiteId, Integer, ())]
-                  g = HashMap.fromListWith (++) [e | (src, tgt) <- fmap deNRiver $ Set.toList $ myRivers2, e <- [(src, [(tgt, 0, ())]), (tgt, [(src, 0, ())])]]
-
--- 他のプレイヤーの打った手による状態更新
-update :: P.Moves -> Punter -> Punter
-update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
-  p1
-  { availableRivers = availableRivers1 \\ Set.fromList [toNRiver' s t | P.MvClaim _punter' s t <- moves]
-  }
-
-choice :: Punter -> Maybe NRiver
-choice Punter { setupInfo = si, scoreTable = tbl, availableRivers = ars, myRivers = myRivers1, mySites = mySites1 }
-  | Set.null ars = Nothing 
-  | otherwise = Just $ fst $ maximumBy (comparing snd) scores
-  where
-    g0 :: HashMap P.SiteId [(P.SiteId, Integer, ())]
-    g0 = HashMap.fromListWith (++) [e | (src, tgt) <- fmap deNRiver $ Set.toList $ myRivers1, e <- [(src, [(tgt, 0, ())]), (tgt, [(src, 0, ())])]]
-
-    scores = [(r, score r) | r <- Set.toList ars]
-
-    score :: NRiver -> Integer
-    score r = sum [f r mine | mine <- P.mines (P.map si)]
-      where
-        f :: NRiver -> P.SiteId -> Integer
-        f (deNRiver -> (s,t)) mine = sum [IntMap.findWithDefault 0 site tbl1 | site <- reachableSites]
-          where
-            g = HashMap.unionWith (++) g0 (HashMap.fromList [(s, [(t,0,())]), (t, [(s,0,())])])
-            reachableSites = HashMap.keys (dijkstra g (IntSet.toList (mySites1 IntMap.! mine)))
-            tbl1 = tbl IntMap.! mine
+              g = HashMap.unionWith (++) g0 (HashMap.fromList [(s, [(t,0,())]), (t, [(s,0,())])])
+              reachableSites = HashMap.keys (dijkstra g (IntSet.toList (mySites1 IntMap.! mine)))
+              tbl1 = tbl IntMap.! mine
