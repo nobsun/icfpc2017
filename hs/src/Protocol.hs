@@ -2,15 +2,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module InternalJSON where
+module Protocol where
 
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Text
 
-{- -
-type Name = String
+-- Handshake
+
+type Name = Text
 
 data HandshakePunter = HandshakePunter { me :: Name } deriving (Generic, Show)
 data HandshakeServer = HandshakeServer { you :: Name } deriving (Generic, Show)
@@ -20,14 +21,57 @@ instance ToJSON HandshakeServer
 instance FromJSON HandshakePunter
 instance FromJSON HandshakeServer
 
-data Setup = Setup { punter :: PunterId, punters :: Int, map :: Map } deriving (Generic, Show)
-data Ready = Ready { ready :: PunterId } deriving (Generic, Show)
+-- Setup
 
-instance ToJSON Setup
-instance ToJSON Ready
+data Setup = Setup
+  { punter :: PunterId
+  , punters :: Int
+  , map :: Map
+  , setting :: Maybe Settings
+  } deriving (Generic, Show)
+
+data Ready a = ReadyOn
+  { ready :: PunterId
+  , state :: Maybe (GState a)
+  , futures :: Maybe Futures
+  } deriving (Generic, Show)
+
+instance ToJSON Setup where
+  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+instance ToJSON a => ToJSON (Ready a) where
+  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+
 instance FromJSON Setup
-instance FromJSON Ready
--- comment out by @nobsun -}
+instance FromJSON a => FromJSON (Ready a)
+
+--  Gameplay
+
+data PrevMoves a = PrevMoves
+  { move :: Moves
+  , state :: Maybe (GState a)
+  } deriving (Generic, Show)
+
+data MyMove a = MyMove
+  { move :: Move
+  , state :: Maybe (GState a)
+  } deriving (Generic, Show)
+
+instance ToJSON a => ToJSON (PrevMoves a) where
+  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+instance FromJSON a => FromJSON (PrevMoves a)
+
+instance ToJSON a => ToJSON (MyMove a) where
+  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+instance FromJSON a => FromJSON (MyMove a)
+
+-- Scoring
+
+data Scoring = Scoring { stop :: Stop } deriving (Generic, Show)
+
+instance ToJSON Scoring
+instance FromJSON Scoring
+
+----
 
 type PunterId = Int
 
@@ -39,6 +83,11 @@ data Map = Map
 
 instance ToJSON Map
 instance FromJSON Map
+
+data GState a = GState { state :: a } deriving (Generic, Show)
+
+instance ToJSON a => ToJSON (GState a)
+instance FromJSON a => FromJSON (GState a)
 
 data Settings = Settings { futures :: Bool } deriving (Generic, Show)
 type Futures = [Future]
@@ -107,3 +156,4 @@ data Score = Score { punter :: PunterId
 
 instance ToJSON Score
 instance FromJSON Score
+
