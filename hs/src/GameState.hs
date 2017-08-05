@@ -29,7 +29,7 @@ type RiverLabel = ()
 
 
 initGameState :: Setup -> GameState
-initGameState (Setup spunter spunters smap setting) = GameState
+initGameState (Setup spunter spunters smap _setting) = GameState
   { gs_punter = spunter
   , gs_punters = spunters
   , gs_mines = mineList smap
