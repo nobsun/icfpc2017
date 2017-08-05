@@ -7,7 +7,7 @@
 module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
-import Data.Set (Set)
+import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 import qualified Protocol as P
@@ -39,18 +39,18 @@ instance Punter.IsPunter Punter where
   play P.PrevMoves{ P.state = Just st1, P.move = moves } =
     P.MyMove
     { P.move  = move
-    , P.state = Just st3
+    , P.state = Just st2
     }
     where
-      punterId = P.punter (setupInfo :: P.Setup)
+      punterId = P.punter (si :: P.Setup)
 
-      st2@Punter{ setupInfo = setupInfo, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
+      Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } = update moves st1
 
-      (move, st3) =
+      (move, st2) =
         case Set.toList availableRivers1 of
           [] ->
             ( P.MvPass punterId
-            , st2
+            , st1
             )
           r@(s,t):_ ->
             ( P.MvClaim
@@ -58,7 +58,7 @@ instance Punter.IsPunter Punter where
               , P.source = s
               , P.target = t
               }
-            , st2
+            , st1
               { availableRivers = Set.delete r availableRivers1
               , myRivers = Set.insert r myRivers1
               }
@@ -68,5 +68,5 @@ instance Punter.IsPunter Punter where
 update :: P.Moves -> Punter -> Punter
 update P.Moves{ P.moves = moves } p1@Punter{ availableRivers = availableRivers1 } =
   p1
-  { availableRivers = availableRivers1 `Set.difference` Set.fromList [e | P.MvClaim _punter' source target <- moves, e <- [(source,target), (target,source)]]
+  { availableRivers = availableRivers1 \\ Set.fromList [e | P.MvClaim _punter' s t <- moves, e <- [(s,t), (t,s)]]
   }
