@@ -17,8 +17,11 @@ import Data.Aeson.Types
 
 newtype NRiver = NRiver (SiteId, SiteId)
 
+toNRiver' :: SiteId -> SiteId -> NRiver
+toNRiver' s t = if s < t then NRiver (s, t) else NRiver (t, s)
+
 toNRiver :: River -> NRiver
-toNRiver (River s t) = if s < t then NRiver (s, t) else NRiver (t, s)
+toNRiver (River s t) = toNRiver' s t
 
 deNRiver :: NRiver -> (SiteId, SiteId)
 deNRiver (NRiver p) = p
@@ -29,6 +32,4 @@ data NClaim = NClaim
   }
 
 toNClaim :: (PunterId, SiteId, SiteId) -> NClaim
-toNClaim (pid, src, tar)
-  | src < tar  = NClaim pid (NRiver (src, tar))
-  | otherwise  = NClaim pid (NRiver (tar, src))
+toNClaim (pid, src, tar) = NClaim pid $ toNRiver' src tar
