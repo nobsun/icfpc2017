@@ -20,12 +20,13 @@ void initPlayer() {
   mt.seed(rnd());
 }
 
-JMove genmove(const Game& game, int player) {
+JMove genmove(Game& game, int player) {
   vector<int> openRivers;
   for (size_t i = 0; i < game.map.rivers; i++) {
     if (game.owner[i] < 0)
       openRivers.push_back(i);
   }
+  cerr << "SCORE:" << game.score(player) << endl;
   if (openRivers.size() == 0) {
     return JMove::pass(player);
   } else {
