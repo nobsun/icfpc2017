@@ -18,6 +18,7 @@ import System.Environment
 
 import qualified Protocol as P
 import Punter  
+import Punter.Pass as PassPunter
 
 main :: IO ()
 main = do
@@ -37,7 +38,7 @@ test port = do
       (hClose)
       (\h -> do
         hSetBuffering h NoBuffering
-        runPunterOnline "sampou" (Proxy :: Proxy Punter.Dummy) h)
+        runPunterOnline "sampou" (Proxy :: Proxy PassPunter.PassPunter) h)
 
 runPunterOnline :: forall a. Punter.Punter a => T.Text -> Proxy a -> Handle -> IO ()
 runPunterOnline name _ h = do
