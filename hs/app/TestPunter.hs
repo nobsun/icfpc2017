@@ -5,10 +5,10 @@ import Data.ByteString.Lazy.Char8 as B (pack, unpack)
 import Data.Char (isDigit)
 import Data.Aeson (ToJSON, encode, decode)
 import Data.List (isPrefixOf, tails)
-import Debug.Trace (traceShow)
+-- import Debug.Trace (traceShow)
 import Network.Socket
 import Control.Exception (bracket)
-import Control.Monad (forever, replicateM, void)
+import Control.Monad (replicateM, void)
 import System.IO
 import System.Environment
 
