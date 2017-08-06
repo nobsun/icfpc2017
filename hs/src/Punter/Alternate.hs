@@ -20,8 +20,8 @@ instance (J.FromJSON p1, J.FromJSON p2) => J.FromJSON (Alternate p1 p2)
 instance (Punter.IsPunter p1, Punter.IsPunter p2) => Punter.IsPunter (Alternate p1 p2)  where
   setup s =
     P.ReadyOn
-    { P.ready   = P.punter (s :: P.Setup)
-    , P.state   = Just $ Alternate True (fromJust (P.state (r1 :: P.Ready p1))) (fromJust (P.state (r2 :: P.Ready p2)))
+    { P.ready   = P.setupPunter s
+    , P.state   = Just $ Alternate True (fromJust $ P.readyState r1) (fromJust $ P.readyState r2)
     , P.futures = P.futures (r1 :: P.Ready p1)
     }
     where
