@@ -2,8 +2,8 @@ TARGET=punter
 CXX = g++
 OPTIMIZE = -O3
 CPP11 = -std=c++11 -std=c++1y
-WARNING = -Wall
-DEBUG = -g -pg
+WARNING = -Wall -Wno-sign-compare
+DEBUG = -g
 CFLAGS = ${OPTIMIZE} ${WARNING} ${CPP11} ${DEBUG}
 LIBS = -lm
 RM = rm

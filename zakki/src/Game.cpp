@@ -253,6 +253,7 @@ json toJson(const Game& game) {
   msg["punter"] = game.game.punter;
   msg["punters"] = game.game.punters;
   msg["owner"] = game.owner;
+  msg["turn"] = game.turn;
 
   return msg;
 }
@@ -283,7 +284,7 @@ JGame parseGame(json jsgame) {
 
 void handshake()
 {  json startMsg;
-  startMsg["me"] = "SamBob";
+  startMsg["me"] = "SamBobR";
   sendMessage(startMsg);
 }
 
@@ -325,6 +326,7 @@ void loop() {
         jgame = parseGame(*jstate);
         game = make_shared<Game>(jgame);
         game->owner = (*jstate)["owner"].get<vector<int>>();
+        game->turn = (*jstate)["turn"].get<int>();
       }
 
       auto ms = parseMoves(*jmove);
