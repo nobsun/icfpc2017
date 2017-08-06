@@ -1,19 +1,14 @@
 {-# OPTIONS_GHC -Wall #-}
 
-import Data.Proxy
+import Data.List (intercalate)
 import OfflinePlay
-import qualified Punter.Pass as PassPunter
-import qualified Punter.ClaimAny as AnyPunter
-import qualified Punter.ClaimGreedy as GreedyPunter
-import qualified Punter.MaxDegree as MaxDegree
-import qualified Punter.Alternate as Alternate
-import qualified Punter.STF as STF
+import qualified Punters as Punters
 import System.Environment
 
 
 usage :: IO ()
 usage =
-  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy|max-degree|greedy2|stf}", "" ]
+  putStr $ unlines [ "Usage: TestPunterOffline {" ++ intercalate "|" Punters.names ++ "}", "" ]
 
 main :: IO ()
 main = do
@@ -22,11 +17,6 @@ main = do
     []      ->  usage *> error "punter algorithm name is required"
     name:_  ->  return name
 
-  case name of
-    "pass"    -> runPunterOffline (Proxy :: Proxy PassPunter.Punter)
-    "any"     -> runPunterOffline (Proxy :: Proxy AnyPunter.Punter)
-    "greedy"  -> runPunterOffline (Proxy :: Proxy GreedyPunter.Punter)
-    "max-degree" -> runPunterOffline (Proxy :: Proxy MaxDegree.Punter)
-    "greedy2" -> runPunterOffline (Proxy :: Proxy (Alternate.Alternate MaxDegree.Punter GreedyPunter.Punter))
-    "stf" -> runPunterOffline (Proxy :: Proxy STF.Punter)
-    _  -> usage *> error "unknown punter algorithm"
+  case Punters.withPunter name runPunterOffline of
+    Just act -> act
+    Nothing -> usage *> error "unknown punter algorithm"
