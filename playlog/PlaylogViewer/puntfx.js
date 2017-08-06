@@ -270,11 +270,13 @@ function handlePass() {
   theirTurn();
 }
 
-
+var playlogs = null;
 function getPlaylog(pos) {
   logInfo("pos: " + pos);
-  const playlog = $('#playlog').val();
-  let playlogs = playlog.split(/\n/);
+  if (playlogs === null) {
+    const playlog = $('#playlog').text();
+    playlogs = playlog.split(/\n/);
+  }
   var serverpos = 0;
   for (var i=0; i<playlogs.length; i++) {
     if (! playlogs[i].match(/^<-/) || playlogs[i].match(/"you":/)) {
