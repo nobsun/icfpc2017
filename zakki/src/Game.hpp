@@ -89,9 +89,10 @@ public:
   const JGame game;
   const Map map;
   vector<int> owner;
+  int turn;
 
   explicit Game(const JGame& g) :
-    game(g), map(g.map) {
+    game(g), map(g.map), turn(0) {
     //cerr << "new Game" << endl;
     //cerr << map.rivers << endl;
     owner.resize(map.rivers);
@@ -115,6 +116,7 @@ public:
         owner[id] = m.punter;
       }
     }
+    turn += moves.size();
   }
   
   bool hasRoute(int from, int to, int punter);
