@@ -270,6 +270,18 @@ function handlePass() {
   theirTurn();
 }
 
+function fileSelectedHandler(ev) {
+  var files = ev.target.files;
+  var reader = new FileReader();
+  reader.readAsText(files[0]);
+  reader.onload = (function(f) {
+    playlogs = reader.result.split(/\n/);
+    $('#file-info').text("File loaded! Click [Next] button below to step the Punter.");
+    handleNext();
+    $('#next-button').removeAttr("disabled");
+  });
+}
+
 var playlogs = null;
 function getNextPlaylog() {
   if (playlogs === null) {
@@ -430,3 +442,7 @@ function playQueuedClaims() {
   queuedPass = false;
   ourTurn();
 }
+
+
+document.getElementById("file").addEventListener("change",fileSelectedHandler);
+
