@@ -19,8 +19,6 @@ import Punter
 import NormTypes
 import qualified UnionFind as UF
 
-import Debug.Trace
-
 data Punter
   = Punter
   { setupInfo :: P.Setup
@@ -66,7 +64,7 @@ instance Punter.IsPunter Punter where
       P.MvPass punterId 
     else
       let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) scores
-      in traceShow scores $ P.MvClaim punterId s t
+      in P.MvClaim punterId s t
     where
       punterId = P.punter (si :: P.Setup)
   
