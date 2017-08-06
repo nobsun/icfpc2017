@@ -31,7 +31,6 @@ if [ ! -x ./run/TestPunterOffline ]; then
         ; do
         if [ -x $exe ]; then
             cp -a $exe ./run/TestPunterOffline.$$
-            strip ./run/TestPunterOffline.$$
             mv ./run/TestPunterOffline.$$ ./run/TestPunterOffline
             break
         fi
