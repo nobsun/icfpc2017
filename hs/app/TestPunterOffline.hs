@@ -5,6 +5,7 @@ import OfflinePlay
 import qualified Punter.Pass as PassPunter
 import qualified Punter.ClaimAny as AnyPunter
 import qualified Punter.ClaimGreedy as GreedyPunter
+import qualified Punter.MaxDegree as MaxDegree
 import System.Environment
 
 
@@ -23,4 +24,5 @@ main = do
     "pass"    -> runPunterOffline (Proxy :: Proxy PassPunter.Punter)
     "any"     -> runPunterOffline (Proxy :: Proxy AnyPunter.Punter)
     "greedy"  -> runPunterOffline (Proxy :: Proxy GreedyPunter.Punter)
+    "max-degree" -> runPunterOffline (Proxy :: Proxy MaxDegree.Punter)
     _  -> usage *> error "unknown punter algorithm"
