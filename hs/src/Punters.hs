@@ -9,6 +9,7 @@ import qualified Punter.ClaimGreedy as GreedyPunter
 import qualified Punter.MaxDegree as MaxDegree
 import qualified Punter.Alternate as Alternate
 import qualified Punter.STF as STF
+import qualified Punter.Longest as Longest
 
 names :: [String]
 names =
@@ -18,6 +19,7 @@ names =
   , "max-degree"
   , "greedy2"
   , "stf"
+  , "longest"
   ]
 
 withPunter :: String -> (forall a. Punter.IsPunter a => Proxy a -> b) -> Maybe b
@@ -29,4 +31,5 @@ withPunter name k =
     "max-degree" -> Just $ k (Proxy :: Proxy MaxDegree.Punter)
     "greedy2" -> Just $ k (Proxy :: Proxy (Alternate.Alternate MaxDegree.Punter GreedyPunter.Punter))
     "stf" -> Just $ k (Proxy :: Proxy STF.Punter)
+    "longest" -> Just $ k (Proxy :: Proxy Longest.Punter)
     _ -> Nothing
