@@ -28,6 +28,7 @@ library
                      , Punter.ClaimGreedy
                      , Punter.MaxDegree
                      , Punter.Alternate
+                     , Punter.STF
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
