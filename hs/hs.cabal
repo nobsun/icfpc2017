@@ -29,6 +29,7 @@ library
                      , Punter.MaxDegree
                      , Punter.Alternate
                      , Punter.STF
+                     , Punter.Longest
                      , Punters
                      , Dijkstra
                      , UnionFind
