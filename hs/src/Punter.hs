@@ -20,9 +20,12 @@ class (ToJSON a, FromJSON a) => IsPunter a where
   chooseMove :: a -> P.MyMove a
   chooseMove a = P.MyMove (chooseMoveSimple a) (Just a)
 
-play :: IsPunter a => P.PrevMoves a -> P.MyMove a
-play (P.PrevMoves moves (Just a)) = chooseMove (applyMoves moves a)
-play (P.PrevMoves _moves Nothing) = error "Punter.play: no state is available"
+  logger :: a -> IO a
+  logger = return
+
+play :: IsPunter a => P.PrevMoves a -> IO (P.MyMove a)
+play (P.PrevMoves moves (Just a)) = return . chooseMove =<< logger (applyMoves moves a)
+play (P.PrevMoves _moves Nothing) = return $ error "Punter.play: no state is available"
 
 {- --- JSON の decode 結果の可否で区別できるので必要にならなかった
 data OfflineStage

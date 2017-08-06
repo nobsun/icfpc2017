@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -29,7 +27,7 @@ instance J.FromJSON Punter
 instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
-    { P.ready   = P.punter (s :: P.Setup)
+    { P.ready   = P.setupPunter s
     , P.state   = Just $
         Punter
         { setupInfo = s
@@ -45,11 +43,11 @@ instance Punter.IsPunter Punter where
     , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
     }
     where
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.setupPunter si
 
   chooseMoveSimple Punter{ setupInfo = si, availableRivers = availableRivers1 } =
     case listToMaybe $ Set.toList $ availableRivers1 of
       Nothing -> P.MvPass punterId
       Just r | (s,t) <- deNRiver r -> P.MvClaim punterId s t
     where
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.setupPunter si
