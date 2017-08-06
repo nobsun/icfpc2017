@@ -400,14 +400,16 @@ var AG_removeParent = function(el, fn) { while (el && el.parentNode) { if (fn(el
       <div class="row">
         <div class="col-md-8">
           <fieldset>
-            <legend>Log</legend>
-            <textarea id="log" readonly="readonly"></textarea>
+            <legend>Playlog</legend>
+            <pre id="playlog">
+<!--PLAYLOG-->
+            </pre>
           </fieldset>
         </div>
         <div class="col-md-8">
           <fieldset>
-            <legend>Paste Playlog Here</legend>
-            <textarea id="playlog"></textarea>
+            <legend>Log</legend>
+            <textarea id="log" readonly="readonly"></textarea>
           </fieldset>
         </div>
       </div>
@@ -415,7 +417,7 @@ var AG_removeParent = function(el, fn) { while (el && el.parentNode) { if (fn(el
         <legend>Game Information</legend>
         <table class="settings-table">
           <tbody><tr>
-            <td><div id="our-color">Our Punter Color</div></td>
+            <td style="background-color:black;padding:15px;"><div id="our-color" style="color:white">Our Punter Color</div></td>
             <td>Status:</td>
             <td><div id="game-status">Disconnected</div></td>
           </tr>
