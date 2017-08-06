@@ -116,32 +116,32 @@ JMap parseMap(json map) {
   JMap m;
 
   auto sites = map.at("sites");
-  cerr << sites << endl;
+  //cerr << sites << endl;
   assert(sites.is_array());
 
   for (auto it = sites.begin(); it != sites.end(); it++) {
     int id = it->at("id");
-    cerr << "site " << id << " " << m.sites.size() << endl;
+    //cerr << "site " << id << " " << m.sites.size() << endl;
     m.sites.push_back(id);
   }
   sort(m.sites.begin(), m.sites.end());
-  cerr << json(m.sites) << endl;
+  //cerr << json(m.sites) << endl;
 
   auto rivers = map.at("rivers");
-  cerr << rivers << endl;
+  //cerr << rivers << endl;
   assert(rivers.is_array());
   for (auto it = rivers.begin(); it != rivers.end(); it++) {
     int s = it->at("source");
     int t = it->at("target");
-    cerr << "river " << s << " -> " << t << endl;
+    //cerr << "river " << s << " -> " << t << endl;
     m.rivers.push_back(River(s, t));
   }
 
   auto mines = map.at("mines");
-  cerr << mines << endl;
+  //cerr << mines << endl;
   assert(mines.is_array());
   m.mines = mines.get<std::vector<int>>();
-  cerr << json(m.mines) << endl;
+  //cerr << json(m.mines) << endl;
 
   return m;
 }
@@ -205,9 +205,9 @@ json toJson(const Game& game) {
 vector<JMove> parseMoves(json jmove) {
   vector<JMove> moves;
   auto jmoves = jmove.at("moves");
-  cerr << jmoves << endl;
+  //cerr << jmoves << endl;
   for (auto it = jmoves.begin(); it != jmoves.end(); ++it) {
-    cerr << *it << endl;
+    //cerr << *it << endl;
     moves.push_back(parseMove(*it));
   }
   return moves;
@@ -218,11 +218,11 @@ JGame parseGame(json jsgame) {
   auto jsmap = jsgame.at("map");
   cerr << jsmap.dump() << endl;
   game.map = parseMap(jsmap);
-  cerr << "map" << endl;
+  //cerr << "map" << endl;
   game.punter = jsgame.at("punter");
-  cerr << game.punter << endl;
+  //cerr << game.punter << endl;
   game.punters = jsgame.at("punters");
-  cerr << game.punters << endl;
+  //cerr << game.punters << endl;
   return game;
 }
 
@@ -249,11 +249,11 @@ void loop() {
     if (jmap != msg.end()) {
       cerr << "SETUP:" << *jmap << endl;
       //msg = recvMessage();
-      cerr << "parse Game" << endl;
+      //cerr << "parse Game" << endl;
       jgame = parseGame(msg);
-      cerr << "make Game" << endl;
+      //cerr << "make Game" << endl;
       game = make_shared<Game>(jgame);
-      cerr << "ok" << endl;
+      //cerr << "ok" << endl;
 
       json readyMsg;
       readyMsg["ready"] = game->game.punter;
@@ -273,7 +273,7 @@ void loop() {
       }
 
       auto ms = parseMoves(*jmove);
-      cerr << "moves " << ms.size() << endl;
+      //cerr << "moves " << ms.size() << endl;
       game->update(ms);
       auto move = toJson(genmove(*game, game->game.punter));
       move["state"] = toJson(*game);
