@@ -19,6 +19,7 @@ library
                      , GameState
                      , NormTypes
                      , ClaimedGraph
+                     , CommonState
                      , OnlinePlay
                      , OfflinePlay
                      , Punter
