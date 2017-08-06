@@ -28,6 +28,7 @@ library
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
+                     , GraphUtils
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
