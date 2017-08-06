@@ -401,48 +401,9 @@ var AG_removeParent = function(el, fn) { while (el && el.parentNode) { if (fn(el
         <div class="col-md-8">
           <fieldset>
             <legend>Playlog</legend>
-            <pre id="playlog">
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"punter":1,"punters":2,"map":{"sites":[{"id":4,"x":2.0,"y":-2.0},{"id":1,"x":1.0,"y":0.0},{"id":3,"x":2.0,"y":-1.0},{"id":6,"x":0.0,"y":-2.0},{"id":5,"x":1.0,"y":-2.0},{"id":0,"x":0.0,"y":0.0},{"id":7,"x":0.0,"y":-1.0},{"id":2,"x":2.0,"y":0.0}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}],"mines":[1,5]},"state":{}}
--> {"state":{"availableRivers":[{"source":0,"target":1},{"source":0,"target":7},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":3,"target":5},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[]},"ready":1}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":3,"target":5}},{"pass":{"punter":1}}]},"state":{"availableRivers":[{"source":0,"target":1},{"source":0,"target":7},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":3,"target":5},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[]}}
--> {"state":{"availableRivers":[{"source":0,"target":1},{"source":0,"target":7},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[]},"claim":{"punter":1,"source":0,"target":1}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":0,"target":7}},{"claim":{"punter":1,"source":0,"target":1}}]},"state":{"availableRivers":[{"source":0,"target":1},{"source":0,"target":7},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[]}}
--> {"state":{"availableRivers":[{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1}]},"claim":{"punter":1,"source":1,"target":2}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":5,"target":6}},{"claim":{"punter":1,"source":1,"target":2}}]},"state":{"availableRivers":[{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":6},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1}]}}
--> {"state":{"availableRivers":[{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2}]},"claim":{"punter":1,"source":1,"target":3}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":2,"target":3}},{"claim":{"punter":1,"source":1,"target":3}}]},"state":{"availableRivers":[{"source":1,"target":3},{"source":1,"target":7},{"source":2,"target":3},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2}]}}
--> {"state":{"availableRivers":[{"source":1,"target":7},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2},{"source":1,"target":3}]},"claim":{"punter":1,"source":1,"target":7}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":3,"target":4}},{"claim":{"punter":1,"source":1,"target":7}}]},"state":{"availableRivers":[{"source":1,"target":7},{"source":3,"target":4},{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2},{"source":1,"target":3}]}}
--> {"state":{"availableRivers":[{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7}]},"claim":{"punter":1,"source":4,"target":5}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"move":{"moves":[{"claim":{"punter":0,"source":5,"target":7}},{"claim":{"punter":1,"source":4,"target":5}}]},"state":{"availableRivers":[{"source":4,"target":5},{"source":5,"target":7},{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7}]}}
--> {"state":{"availableRivers":[{"source":6,"target":7}],"setupInfo":{"punter":1,"map":{"mines":[1,5],"sites":[{"id":4},{"id":1},{"id":3},{"id":6},{"id":5},{"id":0},{"id":7},{"id":2}],"rivers":[{"source":3,"target":4},{"source":0,"target":1},{"source":2,"target":3},{"source":1,"target":3},{"source":5,"target":6},{"source":4,"target":5},{"source":3,"target":5},{"source":6,"target":7},{"source":5,"target":7},{"source":1,"target":7},{"source":0,"target":7},{"source":1,"target":2}]},"punters":2},"myRivers":[{"source":0,"target":1},{"source":1,"target":2},{"source":1,"target":3},{"source":1,"target":7},{"source":4,"target":5}]},"claim":{"punter":1,"source":6,"target":7}}
--> {"me":"sampou-offline"}
--> {"me":"sampou-offline"}
-<- {"you":"sampou-offline"}
-<- {"stop":{"moves":[{"pass":{"punter":0}},{"pass":{"punter":1}}],"scores":[{"punter":0,"score":12},{"punter":1,"score":9}]}}
-
-            </pre>
+            <p>Select a playlog file.</p>
+            <input type="file" id="file" name="file" />
+            <p id="file-info"></p>
           </fieldset>
         </div>
         <div class="col-md-8">
@@ -456,13 +417,14 @@ var AG_removeParent = function(el, fn) { while (el && el.parentNode) { if (fn(el
         <legend>Game Information</legend>
         <table class="settings-table">
           <tbody><tr>
-            <td style="background-color:black;padding:15px;"><div id="our-color" style="color:white">Our Punter Color</div></td>
+            <td>Our Punter Color:</td>
+            <td style="background-color:black;padding:15px;"><div id="our-color" style="width:50px;height:1em;color:white"></div></td>
             <td>Status:</td>
             <td><div id="game-status">Disconnected</div></td>
           </tr>
           <tr>
             <td>
-              <button class="btn" id="next-button" onclick="handleNext()">Next</button>
+              <button class="btn" id="next-button" onclick="handleNext()" disabled="disabled">Next</button>
             </td>
           </tr>
         </tbody></table>
