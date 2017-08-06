@@ -58,9 +58,9 @@ executable TestPunter
                      , hs
   default-language:    Haskell2010
 
-executable TestPunterSakai
+executable TestPunterOnline
   hs-source-dirs:      app
-  main-is:             TestPunterSakai.hs
+  main-is:             TestPunterOnline.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , fgl >= 5.5.3.1
