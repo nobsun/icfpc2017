@@ -69,5 +69,9 @@ recv name = do
     $ J.decode s
   where
     getLength cs = do
-      c <- hGetChar stdin
-      if isDigit c then getLength (c:cs) else readIO (reverse cs)
+      eof <- isEOF
+      if eof
+        then    fail "OfflinePlay: recv: unexpected end-of-stream"
+        else do
+        c <- hGetChar stdin
+        if isDigit c then getLength (c:cs) else readIO (reverse cs)
