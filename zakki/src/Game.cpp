@@ -15,35 +15,59 @@ using namespace std;
 // for convenience
 using json = nlohmann::json;
 
+Map::Map(const JMap& m)
+  : sites(m.sites),
+    mines(m.mines),
+    rivers(m.rivers.size()) {
+  //cerr << "new Map" << endl;
+  int size = sites[sites.size() - 1] + 1;
+  connection.resize(size * size);
+  riverIndex.resize(size * size);
+  fill(riverIndex.begin(), riverIndex.end(), -1);
+  distanceCache.resize(size * size);
+  fill(distanceCache.begin(), distanceCache.end(), numeric_limits<int>::max());
+  for (size_t i = 0; i < m.rivers.size(); i++) {
+    auto r = m.rivers[i];
+    connection[r.source * size  + r.target] = true;
+    connection[r.target * size  + r.source] = true;
+    riverIndex[r.source * size  + r.target] = i;
+    riverIndex[r.target * size  + r.source] = i;
+    }
+  //cerr << "ok." << endl;
+}
+
 int Map::distance(int from, int to) const {
-  const int no_route = numeric_limits<int>::max();
+  const int max_site = sites[sites.size() - 1] + 1;
   const int size = sites.size();
-  vector<int> dist(sites.size(), no_route);
-  dist[from] = 0;
+  int offset = from * max_site;
+  //vector<int> dist(sites.size(), no_route);
+  if (distanceCache[offset + to] != no_route)
+    return distanceCache[offset + to];
+  distanceCache[offset + from] = 0;
   for (int n = 0; n < size; n++) {
     for (int i = 0; i < size; i++) {
-      if (dist[i] == no_route)
-        continue;
       int  source = sites[i];
+      if (distanceCache[offset + source] == no_route)
+        continue;
       for (int j = 0; j < size; j++) {
         if (i == j)
           continue;
         int target = sites[j];
         if (connected(source, target)) {
-          int d = dist[i] + 1;
+          int d = distanceCache[offset + source] + 1;
           //if (j == to) return d;
-          if (dist[j] > d) {
+          if (distanceCache[offset + target] > d) {
             //cerr << "distance:" << i << "->" << j << ":" << d << endl;
-            dist[j] = d;
+            distanceCache[offset + target] = d;
           }
         }
       }
     }
-    if (dist[to] != no_route)
-      return dist[to];
+    if (distanceCache[offset + to] != no_route)
+      return distanceCache[offset + to];
   }
-  if (dist[to] != no_route)
-    return dist[to];
+  //if (distanceCache[to] != no_route)
+  //return distanceCache[to];
   return 0;
 }
 
@@ -51,9 +75,11 @@ int Game::score(int punter) {
   int score = 0;
   const int size = map.sites.size();
   for (int mine : map.mines) {
+    vector<int> r = route(mine, punter);
     for (int i = 0; i < size; i++) {
       int source = map.sites[i];
-      if (mine != i && hasRoute(mine, source, punter)) {
+      //if (mine != i && hasRoute(mine, source, punter)) {
+      if (mine != source && r[source] != no_route) {
         int d = map.distance(mine, source);
         //cerr << mine << ":" << source << "->" << d << endl;
         score += d * d;
@@ -64,26 +90,26 @@ int Game::score(int punter) {
 }
 
 bool Game::hasRoute(int from, int to, int punter) {
-  const int no_route = numeric_limits<int>::max();
+  const int max_site = map.sites[map.sites.size() - 1] + 1;
   const int size = map.sites.size();
-  vector<int> dist(size, no_route);
+  vector<int> dist(max_site, no_route);
   dist[from] = 0;
   for (int n = 0; n < size; n++) {
     bool changed = false;
     for (int i = 0; i < size; i++) {
-      if (dist[i] == no_route)
-        continue;
       int source = map.sites[i];
+      if (dist[source] == no_route)
+        continue;
       for (int j = 0; j < size; j++) {
-        if (i == j || dist[j] < no_route)
-          continue;
         int target = map.sites[j];
+        if (i == j || dist[target] < no_route)
+          continue;
         if (map.connected(source, target) && owner[map.riverId(source, target)] == punter) {
           //cerr << "owenr " << i << "-" << j << ":" << map.riverId(i, j) << " " << owner[map.riverId(i, j)] << endl;
-          if (j == to)
+          if (target == to)
             return true;
-          int d = dist[i] + 1;
-          dist[j] = d;
+          int d = dist[source] + 1;
+          dist[target] = d;
           changed = true;
         }
       }
@@ -91,6 +117,35 @@ bool Game::hasRoute(int from, int to, int punter) {
     if (!changed) return false;
   }
   return false;
+}
+
+vector<int> Game::route(int from, int punter) {
+  const int max_site = map.sites[map.sites.size() - 1] + 1;
+  const int size = map.sites.size();
+  vector<int> dist(max_site, no_route);
+  dist[from] = 0;
+  for (int n = 0; n < size; n++) {
+    bool changed = false;
+    for (int i = 0; i < size; i++) {
+      int source = map.sites[i];
+      if (dist[source] == no_route)
+        continue;
+      for (int j = 0; j < size; j++) {
+        int target = map.sites[j];
+        if (i == j || dist[target] < no_route)
+          continue;
+        if (map.connected(source, target) && owner[map.riverId(source, target)] == punter) {
+          //cerr << "owenr " << i << "-" << j << ":" << map.riverId(i, j) << " " << owner[map.riverId(i, j)] << endl;
+          int d = dist[source] + 1;
+          dist[target] = d;
+          changed = true;
+        }
+      }
+    }
+    if (!changed)
+      break;
+  }
+  return dist;
 }
 
 json recvMessage() {

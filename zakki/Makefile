@@ -3,7 +3,7 @@ CXX = g++
 OPTIMIZE = -O3
 CPP11 = -std=c++11 -std=c++1y
 WARNING = -Wall
-DEBUG = -g
+DEBUG = -g -pg
 CFLAGS = ${OPTIMIZE} ${WARNING} ${CPP11} ${DEBUG}
 LIBS = -lm
 RM = rm
