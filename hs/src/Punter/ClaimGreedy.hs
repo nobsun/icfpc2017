@@ -34,7 +34,7 @@ instance J.FromJSON Punter
 instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
-    { P.ready   = P.punter (s :: P.Setup)
+    { P.ready   = P.setupPunter s
     , P.state   = Just $
         Punter
         { setupInfo = s
@@ -55,7 +55,7 @@ instance Punter.IsPunter Punter where
     , movePool = movePool2
     }
     where
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.setupPunter si
 
       siteClasses2 = foldl' f siteClasses1 moves
         where
@@ -64,15 +64,15 @@ instance Punter.IsPunter Punter where
           f tbl _ = tbl
 
       movePool2 = CS.applyMoves moves movePool1
-      
+
 
   chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, siteClasses = siteClasses1 } =
     if Set.null ars then
-      P.MvPass punterId 
+      P.MvPass punterId
     else
       let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) scores
       in P.MvClaim punterId s t
     where
-      punterId = P.punter (si :: P.Setup)
-  
+      punterId = P.setupPunter si
+
       scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses1 s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
