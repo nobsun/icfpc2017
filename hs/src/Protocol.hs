@@ -32,11 +32,17 @@ data Setup = Setup
   , setting :: Maybe Settings
   } deriving (Generic, Show)
 
+setupPunterId :: Setup -> PunterId
+setupPunterId = punter
+
 data Ready a = ReadyOn
   { ready :: PunterId
   , state :: Maybe a
   , futures :: Maybe Futures
   } deriving (Generic, Show)
+
+readyState :: Ready a -> Maybe a
+readyState = state
 
 instance ToJSON Setup where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
@@ -141,13 +147,13 @@ instance ToJSON Move where
   toJSON (MvPass punterId) = object $
     [ "pass" .= object [ "punter" .= toJSON punterId ]
     ]
-  
+
 instance FromJSON Move where
   parseJSON = do
     withObject "Move" $ \obj ->
       case HashMap.lookup "claim" obj of
         Just claim -> do
-          let f obj2 = 
+          let f obj2 =
                 MvClaim
                 <$> (obj2 .: "punter")
                 <*> (obj2 .: "source")
@@ -175,4 +181,3 @@ instance FromJSON Score
 
 getMap :: FilePath -> IO (Maybe Map)
 getMap path = BSL.readFile path >>= return.decode
-
