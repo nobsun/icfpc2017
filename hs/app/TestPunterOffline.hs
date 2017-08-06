@@ -7,12 +7,13 @@ import qualified Punter.ClaimAny as AnyPunter
 import qualified Punter.ClaimGreedy as GreedyPunter
 import qualified Punter.MaxDegree as MaxDegree
 import qualified Punter.Alternate as Alternate
+import qualified Punter.STF as STF
 import System.Environment
 
 
 usage :: IO ()
 usage =
-  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy|max-degree}", "" ]
+  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy|max-degree|greedy2|stf}", "" ]
 
 main :: IO ()
 main = do
@@ -27,4 +28,5 @@ main = do
     "greedy"  -> runPunterOffline (Proxy :: Proxy GreedyPunter.Punter)
     "max-degree" -> runPunterOffline (Proxy :: Proxy MaxDegree.Punter)
     "greedy2" -> runPunterOffline (Proxy :: Proxy (Alternate.Alternate MaxDegree.Punter GreedyPunter.Punter))
+    "stf" -> runPunterOffline (Proxy :: Proxy STF.Punter)
     _  -> usage *> error "unknown punter algorithm"
