@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wall #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module Punter.ClaimGreedy where
@@ -62,6 +60,7 @@ instance Punter.IsPunter Punter where
         where
           f tbl (P.MvClaim punter' s t)
             | punter' == P.setupPunter si  = UF.unify tbl s t
+            | otherwise                    = tbl
           f tbl (P.MvPass {})              = tbl
 
       movePool2 = CS.applyMoves moves movePool1
