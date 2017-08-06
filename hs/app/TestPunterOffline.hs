@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wall #-}
-module Main where
 
 import Data.Proxy
 import OfflinePlay
@@ -8,11 +7,20 @@ import qualified Punter.ClaimAny as AnyPunter
 import qualified Punter.ClaimGreedy as GreedyPunter
 import System.Environment
 
+
+usage :: IO ()
+usage =
+  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy}", "" ]
+
 main :: IO ()
 main = do
-  [name, _port] <- getArgs
+  args <- getArgs
+  name  <-  case args of
+    []      ->  usage *> error "punter algorithm name is required"
+    name:_  ->  return name
+
   case name of
-    "pass" -> runPunterOffline (Proxy :: Proxy PassPunter.Punter)
-    "any" -> runPunterOffline (Proxy :: Proxy AnyPunter.Punter)
-    "greedy" -> runPunterOffline (Proxy :: Proxy GreedyPunter.Punter)
-    _ -> error "unknown punter algorithm"
+    "pass"    -> runPunterOffline (Proxy :: Proxy PassPunter.Punter)
+    "any"     -> runPunterOffline (Proxy :: Proxy AnyPunter.Punter)
+    "greedy"  -> runPunterOffline (Proxy :: Proxy GreedyPunter.Punter)
+    _  -> usage *> error "unknown punter algorithm"
