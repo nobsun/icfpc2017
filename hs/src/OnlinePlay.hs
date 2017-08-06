@@ -17,7 +17,7 @@ import Control.Exception (bracket)
 import System.IO
 
 import qualified Protocol as P
-import Punter  
+import Punter
 import qualified Punter.Pass as PassPunter
 
 test :: String -> IO ()
@@ -47,7 +47,7 @@ runPunterOnline' name _ h = do
         (v :: J.Value) <- recv True h
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
-            move <- Punter.play $ moves{ P.state = Just s' }
+            let move = Punter.play $ moves{ P.state = Just s' }
             send h $ (move { P.state = Nothing } :: P.MyMove a)
 --            send h $ (move :: P.MyMove a)  -- with state
             loop $ fromJust $ P.state (move :: P.MyMove a)
