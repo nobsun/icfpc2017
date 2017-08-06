@@ -51,13 +51,11 @@ instance Punter.IsPunter Punter where
     , siteClasses = siteClasses2
     }
     where
-      punterId = P.setupPunter si
-
       siteClasses2 = foldl' f siteClasses1 moves
         where
           f tbl (P.MvClaim punter' s t)
-            | punter' == punterId = UF.unify tbl s t
-          f tbl _ = tbl
+            | punter' == P.setupPunter si  = UF.unify tbl s t
+          f tbl (P.MvPass {})              = tbl
 
   chooseMoveSimple Punter{ setupInfo = si, availableRivers = ars, siteClasses = siteClasses1 } =
     if Set.null ars then

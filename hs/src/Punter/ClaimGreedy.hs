@@ -58,13 +58,11 @@ instance Punter.IsPunter Punter where
     , movePool = movePool2
     }
     where
-      punterId = P.setupPunter si
-
       siteClasses2 = foldl' f siteClasses1 moves
         where
           f tbl (P.MvClaim punter' s t)
-            | punter' == punterId = UF.unify tbl s t
-          f tbl _ = tbl
+            | punter' == P.setupPunter si  = UF.unify tbl s t
+          f tbl (P.MvPass {})              = tbl
 
       movePool2 = CS.applyMoves moves movePool1
 
@@ -88,4 +86,3 @@ instance Punter.IsPunter Punter where
     where
       scores :: MovePool -> IM.IntMap Integer
       scores MovePool{ CS.pool = pl} = IM.mapWithKey (\_ t -> ScoreTable.computeScore tbl t) pl
-      
