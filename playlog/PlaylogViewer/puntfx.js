@@ -271,30 +271,25 @@ function handlePass() {
 }
 
 var playlogs = null;
-function getPlaylog(pos) {
-  logInfo("pos: " + pos);
+function getNextPlaylog() {
   if (playlogs === null) {
-    const playlog = $('#playlog').text();
-    playlogs = playlog.split(/\n/);
+    var tmp = $('#playlog').text();
+    playlogs = tmp.split(/\n/);
   }
-  var serverpos = 0;
-  for (var i=0; i<playlogs.length; i++) {
-    if (! playlogs[i].match(/^<-/) || playlogs[i].match(/"you":/)) {
+  var playlog = playlogs.shift();
+  while (playlog !== undefined) {
+    if (! playlog.match(/^<-/) || playlog.match(/"you":/)) {
+      playlog = playlogs.shift()
       continue;
     }
-    if (serverpos === pos) {
-      logInfo("next message: " + playlogs[i]);
-      return playlogs[i].replace(/^<- /, "");
-    }
-    serverpos++
+    //logInfo("next message: " + playlog);
+    return playlog.replace(/^<- /, "");
   }
   return "";
 }
 
-var currentpos = 0;
 function handleNext() {
-  var message = getPlaylog(currentpos);
-  currentpos++;
+  var message = getNextPlaylog();
   try {
     let msg = JSON.parse(message);
     // Initial message
