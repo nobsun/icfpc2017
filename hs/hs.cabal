@@ -26,6 +26,7 @@ library
                      , Punter.ClaimAny
                      , Punter.ClaimGreedy
                      , Punter.MaxDegree
+                     , Punter.Alternate
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
