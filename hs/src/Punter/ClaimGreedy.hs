@@ -11,6 +11,7 @@ import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
+import CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
@@ -23,6 +24,7 @@ data Punter
   , scoreTable :: ScoreTable.ScoreTable
   , availableRivers :: Set NRiver
   , siteClasses :: UF.Table
+  , pool :: MovePool
   }
   deriving (Generic)
 
@@ -39,6 +41,7 @@ instance Punter.IsPunter Punter where
         , scoreTable = ScoreTable.mkScoreTable m
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
         , siteClasses = UF.emptyTable
+        , pool = CS.empty
         }
     , P.futures = Nothing
     }
