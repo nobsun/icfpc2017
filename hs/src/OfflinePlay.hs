@@ -70,4 +70,4 @@ recv name = do
   where
     getLength cs = do
       c <- hGetChar stdin
-      if isDigit c then getLength (c:cs) else return (read (reverse cs))
+      if isDigit c then getLength (c:cs) else readIO (reverse cs)
