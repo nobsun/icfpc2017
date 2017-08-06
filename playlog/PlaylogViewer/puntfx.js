@@ -108,6 +108,13 @@ function writeLog(msg) {
     return;
 }
 
+function clearLog() {
+    let id = "log";
+    document.getElementById(id).innerHTML = "";
+    document.getElementById(id).scrollTop = document.getElementById(id).scrollHeight;
+    return;
+}
+
 function logInfo(msg) {
     writeLog("info: " + msg);
     return;
@@ -277,6 +284,7 @@ function fileSelectedHandler(ev) {
   reader.onload = (function(f) {
     playlogs = reader.result.split(/\n/);
     $('#file-info').text("File loaded! Click [Next] button below to step the Punter.");
+    clearLog();
     handleNext();
     $('#next-button').removeAttr("disabled");
   });
