@@ -14,6 +14,8 @@ import Data.Monoid
 import Data.Proxy
 import qualified Data.Text as T
 import System.IO
+import System.Timeout (timeout)
+import System.Exit (exitSuccess)
 
 import qualified Protocol as P
 import Punter
@@ -60,8 +62,10 @@ send x = do
 
 recv :: J.FromJSON a => String -> IO a
 recv name = do
-  len <- getLength []
-  s <- L8.hGet stdin len
+  s  <- (maybe (hPutStrLn stderr "timed out." *> exitSuccess) return =<<) .
+        timeout (5 * 1000 * 1000) $ do
+    len <- getLength []
+    L8.hGet stdin len
   L8.hPutStrLn stderr $ "<- " <> s
   maybe
     (fail $ "failed to parse: " ++ name ++ ": " ++ show s)
@@ -69,9 +73,5 @@ recv name = do
     $ J.decode s
   where
     getLength cs = do
-      eof <- isEOF
-      if eof
-        then    fail "OfflinePlay: recv: unexpected end-of-stream"
-        else do
-        c <- hGetChar stdin
-        if isDigit c then getLength (c:cs) else readIO (reverse cs)
+      c <- hGetChar stdin
+      if isDigit c then getLength (c:cs) else readIO (reverse cs)
