@@ -19,15 +19,21 @@ library
                      , GameState
                      , NormTypes
                      , ClaimedGraph
+                     , CommonState
                      , OnlinePlay
                      , OfflinePlay
                      , Punter
                      , Punter.Pass
                      , Punter.ClaimAny
                      , Punter.ClaimGreedy
+                     , Punter.MaxDegree
+                     , Punter.Alternate
+                     , Punter.STF
+                     , Punters
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
+                     , GraphUtils
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
@@ -56,9 +62,9 @@ executable TestPunter
                      , hs
   default-language:    Haskell2010
 
-executable TestPunterSakai
+executable TestPunterOnline
   hs-source-dirs:      app
-  main-is:             TestPunterSakai.hs
+  main-is:             TestPunterOnline.hs
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , fgl >= 5.5.3.1
@@ -78,6 +84,20 @@ executable TestPunterOffline
                      , aeson >= 1.0.2.1
                      , bytestring
                      , text >= 1.2.2.1
+                     , hs
+  default-language:    Haskell2010
+
+executable runpunter
+  hs-source-dirs:      app
+  main-is:             runpunter.hs
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , fgl >= 5.5.3.1
+                     , aeson >= 1.0.2.1
+                     , bytestring
+                     , network
+                     , text >= 1.2.2.1
+                     , optparse-applicative
                      , hs
   default-language:    Haskell2010
 
