@@ -11,7 +11,7 @@ class (ToJSON a, FromJSON a) => IsPunter a where
   -- 自分を含む各Punterの前ターンの手の情報を受け取って情報を更新
   applyMoves :: P.Moves -> a -> a
 
-　-- chooseMoveを実装するのに通常はこちらを実装する
+  -- chooseMoveを実装するのに通常はこちらを実装する
   chooseMoveSimple :: a -> P.Move
 
   -- 基本的にはchooseMoveSimpleを実装することを想定していて、
