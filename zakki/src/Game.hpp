@@ -56,32 +56,18 @@ struct JGame {
   int punters;
 };
 
+const int no_route = numeric_limits<int>::max();
+
 class Map {
 public:
   const vector<int> sites;
   const vector<int> mines;
   vector<int> riverIndex;
   vector<bool> connection;
+  mutable vector<int> distanceCache;
   const size_t rivers;
 
-  explicit Map(const JMap& m)
-    : sites(m.sites),
-      mines(m.mines),
-      rivers(m.rivers.size()) {
-    //cerr << "new Map" << endl;
-    int size = sites[sites.size() - 1] + 1;
-    connection.resize(size * size);
-    riverIndex.resize(size * size);
-    fill(riverIndex.begin(), riverIndex.end(), -1);
-    for (size_t i = 0; i < m.rivers.size(); i++) {
-      auto r = m.rivers[i];
-      connection[r.source * size  + r.target] = true;
-      connection[r.target * size  + r.source] = true;
-      riverIndex[r.source * size  + r.target] = i;
-      riverIndex[r.target * size  + r.source] = i;
-    }
-    //cerr << "ok." << endl;
-  }
+  explicit Map(const JMap& m);
 
   int riverId(int source, int target) const {
     int size = sites[sites.size() - 1] + 1;
@@ -133,5 +119,6 @@ public:
   
   bool hasRoute(int from, int to, int punter);
   int score(int punter);
+  vector<int> route(int from, int punter);
 };
 
