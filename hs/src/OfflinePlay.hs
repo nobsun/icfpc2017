@@ -38,7 +38,7 @@ runPunterOffline' name _ =
       jsonv <- recv "multiplex"
 
       (maybe (fail $ "unknown messsage: " ++ show jsonv) pure =<<) . runMaybeT $
-        ((\moves     -> lift $ send (Punter.play moves)                   *> loop) =<<
+        ((\moves     -> lift $ send =<< (Punter.play moves)               *> loop) =<<
           result (const empty) pure (J.fromJSON jsonv :: Result (P.PrevMoves a)))       <|>     --- check gameplay first
         ((\setupInfo -> lift $ send (Punter.setup setupInfo :: P.Ready a) *> loop) =<<
           result (const empty) pure (J.fromJSON jsonv :: Result P.Setup))               <|>
