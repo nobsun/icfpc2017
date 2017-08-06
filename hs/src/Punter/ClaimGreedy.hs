@@ -83,7 +83,7 @@ instance Punter.IsPunter Punter where
   logger p@Punter { setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores
     forM_ (IM.toList $ scores pool) $ \(pid, s) -> do
-      putStrLn $ (bool " " "*" $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
+      putStrLn $ (bool " "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
     return p
     where
       scores :: MovePool -> IM.IntMap Integer
