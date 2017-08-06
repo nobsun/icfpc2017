@@ -4,6 +4,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 module Punter.ClaimGreedy where
 
+import Data.Bool (bool)
 import Control.Monad (forM_)
 import qualified Data.Aeson as J
 import qualified Data.IntMap.Lazy as IM (IntMap, mapWithKey, toList)
@@ -79,10 +80,10 @@ instance Punter.IsPunter Punter where
 
       scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses1 s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
 
-  logger p@Punter { scoreTable = tbl, movePool = pool } = do
+  logger p@Punter { setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores
     forM_ (IM.toList $ scores pool) $ \(pid, s) -> do
-      putStrLn $ "punter: " ++ show pid ++ " score: " ++ show s
+      putStrLn $ (bool " " "*" $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
     return p
     where
       scores :: MovePool -> IM.IntMap Integer
