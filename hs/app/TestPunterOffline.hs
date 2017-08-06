@@ -11,7 +11,7 @@ import System.Environment
 
 usage :: IO ()
 usage =
-  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy}", "" ]
+  putStr $ unlines [ "Usage: TestPunterOffline {pass|any|greedy|max-degree}", "" ]
 
 main :: IO ()
 main = do
