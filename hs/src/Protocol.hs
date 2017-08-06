@@ -32,8 +32,8 @@ data Setup = Setup
   , setting :: Maybe Settings
   } deriving (Generic, Show)
 
-setupPunterId :: Setup -> PunterId
-setupPunterId = punter
+setupPunter :: Setup -> PunterId
+setupPunter = punter
 
 data Ready a = ReadyOn
   { ready :: PunterId
