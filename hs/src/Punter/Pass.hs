@@ -19,8 +19,8 @@ instance J.FromJSON Punter where
 instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
-    { P.ready   = P.punter (s :: P.Setup)
-    , P.state   = Just $ Punter (P.punter (s :: P.Setup))
+    { P.ready   = P.setupPunter s
+    , P.state   = Just $ Punter (P.setupPunter s)
     , P.futures = Nothing
     }
 
