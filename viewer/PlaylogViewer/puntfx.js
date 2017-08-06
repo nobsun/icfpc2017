@@ -271,18 +271,20 @@ function handlePass() {
 }
 
 
-
 function getPlaylog(pos) {
   logInfo("pos: " + pos);
   const playlog = $('#playlog').val();
   let playlogs = playlog.split(/\n/);
+  var serverpos = 0;
   for (var i=0; i<playlogs.length; i++) {
-    if (! playlogs[i].match(/^<-/)) {
+    if (! playlogs[i].match(/^<-/) || playlogs[i].match(/"you":/)) {
       continue;
-    } else if (i === pos) {
+    }
+    if (serverpos === pos) {
       logInfo("next message: " + playlogs[i]);
       return playlogs[i].replace(/^<- /, "");
     }
+    serverpos++
   }
   return "";
 }
@@ -306,6 +308,7 @@ function handleNext() {
                   "edges": msg.map.rivers,
                   "mines": msg.map.mines };
         logInfo("rendering game graph...");
+        $("#our-color").css("background-color", getPunterColour(punterID));
         renderGraph(msg.map);
     } else if (msg.move !== undefined) {
         handleIncomingMoves(msg.move.moves);
