@@ -2,6 +2,9 @@
 
 <バイト数>:<json 文字列>
 
+moves には punter 毎の直前の move が入っている。
+なので、自身の前回の mvoe も入っている。
+
 Offline mode
 
 offline mode では ready, punter の move,  stop に state が追加される。
