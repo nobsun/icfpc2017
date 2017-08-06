@@ -38,7 +38,7 @@ instance J.FromJSON Punter
 instance Punter.IsPunter Punter where
   setup s =
     P.ReadyOn
-    { P.ready   = P.punter (s :: P.Setup)
+    { P.ready   = P.setupPunter s
     , P.state   = Just $
         Punter
         { setupInfo = s
@@ -56,16 +56,16 @@ instance Punter.IsPunter Punter where
     , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
     }
     where
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.setupPunter si
 
   chooseMoveSimple Punter{ setupInfo = si, availableRivers = ars, myRivers = mrs }
     | Set.null ars = P.MvPass punterId
     | Map.null tbl = P.MvPass punterId
-    | otherwise = 
+    | otherwise =
         let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) (Map.toList tbl)
         in P.MvClaim punterId s t
     where
-      punterId = P.punter (si :: P.Setup)
+      punterId = P.setupPunter si
 
       tbl :: Map NRiver Int
       tbl = Map.fromListWith (+) $ do
