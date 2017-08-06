@@ -24,7 +24,7 @@ data Punter
   , scoreTable :: ScoreTable.ScoreTable
   , availableRivers :: Set NRiver
   , siteClasses :: UF.Table
-  , pool :: MovePool
+  , movePool :: MovePool
   }
   deriving (Generic)
 
@@ -41,17 +41,18 @@ instance Punter.IsPunter Punter where
         , scoreTable = ScoreTable.mkScoreTable m
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
         , siteClasses = UF.emptyTable
-        , pool = CS.empty
+        , movePool = CS.empty
         }
     , P.futures = Nothing
     }
     where
       m = P.map s
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, siteClasses = siteClasses1 } =
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, siteClasses = siteClasses1, movePool = movePool1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
     , siteClasses = siteClasses2
+    , movePool = movePool2
     }
     where
       punterId = P.punter (si :: P.Setup)
@@ -61,6 +62,9 @@ instance Punter.IsPunter Punter where
           f tbl (P.MvClaim punter' s t)
             | punter' == punterId = UF.unify tbl s t
           f tbl _ = tbl
+
+      movePool2 = CS.applyMoves moves movePool1
+      
 
   chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, siteClasses = siteClasses1 } =
     if Set.null ars then
