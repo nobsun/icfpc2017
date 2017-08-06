@@ -40,13 +40,23 @@ runPunterOffline' name _ =
       jsonv <- recv "multiplex"
 
       (maybe (fail $ "unknown messsage: " ++ show jsonv) pure =<<) . runMaybeT $
-        ((\moves     -> lift $ send =<< (Punter.play moves)               *> loop) =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result (P.PrevMoves a)))       <|>     --- check gameplay first
-        ((\setupInfo -> lift $ send (Punter.setup setupInfo :: P.Ready a) *> loop) =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result P.Setup))               <|>
-        (const (pure ())                                                           =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result P.Scoring))
-
+        (play' =<< prevmoves' jsonv)
+        <|>     --- check gameplay first
+        (sendSetup =<< setup' jsonv)
+        <|>
+        (const (pure ()) =<< scoring' jsonv)
+        
+    -- define
+    recv' js = result (const empty) pure (J.fromJSON js)
+    prevmoves' :: J.Value -> MaybeT IO (P.PrevMoves a)
+    scoring' ::  J.Value -> MaybeT IO P.Scoring
+    setup' :: J.Value -> MaybeT IO P.Setup
+    (prevmoves', scoring', setup') = (recv', recv', recv')
+    sendSetup :: P.Setup -> MaybeT IO ()
+    sendSetup si  = lift $ send (Punter.setup si :: P.Ready a) *> loop
+    play' :: P.PrevMoves a -> MaybeT IO ()
+    play' mvs =  lift (send =<< Punter.play mvs *> loop)
+    
 result :: (String -> b) -> (a -> b) -> Result a -> b
 result f g r = case r of
   Error   s  ->  f s
