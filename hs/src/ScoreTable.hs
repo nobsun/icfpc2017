@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 module ScoreTable
   ( ScoreTable
+  , Score
   , mkScoreTable
   , computeScore
   ) where
