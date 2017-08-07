@@ -61,8 +61,7 @@ instance Punter.IsPunter Punter where
       siteClasses = CS.reachabilityOf pool punterId
       scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
 
-  logger p@Punter { setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
+  logger Punter{ setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores
     forM_ (IM.toList $ CS.scores pool tbl) $ \(pid, s) -> do
-      putStrLn $ (bool " "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
-    return p
+      writeLog $ (bool "  "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s

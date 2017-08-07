@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module OfflinePlay where
 
@@ -40,13 +41,29 @@ runPunterOffline' name _ =
       jsonv <- recv "multiplex"
 
       (maybe (fail $ "unknown messsage: " ++ show jsonv) pure =<<) . runMaybeT $
-        ((\moves     -> lift $ send (Punter.play moves)                   *> loop) =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result (P.PrevMoves a)))       <|>     --- check gameplay first
-        ((\setupInfo -> lift $ send (Punter.setup setupInfo :: P.Ready a) *> loop) =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result P.Setup))               <|>
-        (const (pure ())                                                           =<<
-          result (const empty) pure (J.fromJSON jsonv :: Result P.Scoring))
-
+        (play' =<< prevmoves' jsonv)
+        <|>     --- check gameplay first
+        (sendSetup =<< setup' jsonv)
+        <|>
+        (const (pure ()) =<< scoring' jsonv)
+        
+    -- define
+    recv' js = result (const empty) pure (J.fromJSON js)
+    prevmoves' :: J.Value -> MaybeT IO (P.PrevMoves a)
+    scoring' ::  J.Value -> MaybeT IO P.Scoring
+    setup' :: J.Value -> MaybeT IO P.Setup
+    (prevmoves', scoring', setup') = (recv', recv', recv')
+    sendSetup :: P.Setup -> MaybeT IO ()
+    sendSetup si  = lift $ send (Punter.setup si :: P.Ready a) *> loop
+    play' :: P.PrevMoves a -> MaybeT IO ()
+    play' mvs =  lift ((send =<< playWithNextState') *> loop)
+      where
+        playWithNextState' = do
+          mymv@P.MyMove{P.move = mv, P.state = s} <- Punter.play mvs
+          let s' = fmap (applyMoves (P.Moves { P.moves = [mv] })) s
+          return $ (mymv :: P.MyMove a) { P.state = s' }
+          
+    
 result :: (String -> b) -> (a -> b) -> Result a -> b
 result f g r = case r of
   Error   s  ->  f s
@@ -54,11 +71,13 @@ result f g r = case r of
 
 send :: J.ToJSON a => a -> IO ()
 send x = do
-  let json = J.encode x
+  let json = fmap conv J.encode x
   L8.hPutStrLn stderr ("-> " <> json)
   hFlush stderr
-  L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
+  L8.hPutStr stdout json -- $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
+  where
+    conv j = L8.pack (show (L8.length j)) <> ":" <> j
 
 processTimeoutSecond :: Int
 processTimeoutSecond = 600
