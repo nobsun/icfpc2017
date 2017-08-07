@@ -53,4 +53,4 @@ greedyScores scoreTbl classes ars =
   where
     unDown (Down x) = x
     aggregate (xs@((_rv, sc):_)) ys = (map fst xs, sc) : ys
-    aggregate  []               ys =  ys
+    aggregate  []                ys =  ys
