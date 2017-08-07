@@ -18,7 +18,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Protocol
-                     , GameState
+--                     , GameState
                      , NormTypes
                      , ClaimedGraph
                      , CommonState
@@ -37,7 +37,7 @@ library
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
-                     , GraphUtils
+--                     , GraphUtils
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5
                      , fgl >= 5.5.3.1
