@@ -19,6 +19,7 @@ import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
+import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
@@ -28,7 +29,7 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , availableRivers :: Set NRiver
-  , myRivers :: Set NRiver
+  , movePool :: CS.MovePool
   }
   deriving (Generic)
 
@@ -43,22 +44,20 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , myRivers = Set.empty
+        , movePool = CS.empty
         }
     , P.futures = Nothing
     }
     where
       m = P.map s
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } =
+  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
+    , movePool = CS.applyMoves moves movePool1
     }
-    where
-      punterId = P.setupPunter si
 
-  chooseMoveSimple Punter{ setupInfo = si, availableRivers = ars, myRivers = mrs }
+  chooseMoveSimple Punter{ setupInfo = si, availableRivers = ars, movePool = pool }
     | Set.null ars = P.MvPass punterId
     | Map.null tbl = P.MvPass punterId
     | otherwise =
@@ -66,6 +65,7 @@ instance Punter.IsPunter Punter where
         in P.MvClaim punterId s t
     where
       punterId = P.setupPunter si
+      mrs = CS.riversOf pool punterId
 
       tbl :: Map NRiver Int
       tbl = Map.fromListWith (+) $ do
