@@ -8,7 +8,7 @@ import qualified Punters as Punters
 
 data Options = Options
   { optPunterName :: String
-  , optHandShakeName :: Maybe String
+  , _optHandShakeName :: Maybe String
   , optPort :: Maybe String
   } deriving (Eq, Show)
 
