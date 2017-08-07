@@ -1,19 +1,21 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module NormTypes ( NRiver
                  , toNRiver'
                  , toNRiver
                  , deNRiver
+                 , riverSet
+
                  , NClaim
                  , toNClaim
                  ) where
 
-import Protocol
-
--- import GHC.Generics
+import Data.Set (Set)
+import qualified  Data.Set as Set
 import Data.Aeson
--- import Data.Aeson.Types
+
+import Protocol (River (River), PunterId, SiteId)
+
 
 newtype NRiver =
   NRiver (SiteId, SiteId)
@@ -33,6 +35,9 @@ instance ToJSON NRiver where
 
 instance FromJSON NRiver where
   parseJSON = (toNRiver <$>) . parseJSON
+
+riverSet :: [River] -> Set NRiver
+riverSet = Set.fromList . map toNRiver
 
 type NClaim = (PunterId, NRiver)
 
