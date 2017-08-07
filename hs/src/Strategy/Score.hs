@@ -1,10 +1,11 @@
 module Strategy.Score
-  ( greedyScores
-  , greedyScores'
+  ( greedyDiffs
+  , greedyScores
   ) where
 
+import Control.Arrow (second)
 import Data.Ord (Down (..))
-import Data.List (unfoldr)
+import Data.List (unfoldr, group)
 import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Heap as Heap
@@ -23,23 +24,29 @@ instance Eq ScoreOrd where
 instance Ord ScoreOrd where
   ScoreOrd x `compare` ScoreOrd y  =  snd x `compare` snd y
 
-greedyScores :: Int                -- スコア上位 n個
-             -> ScoreTable         -- mine 毎の、site 毎の score のマップ
-             -> UF.Table           -- mine 毎の到達可能 site 集合
-             -> Set NRiver         -- 取得可能の River の集合
-             -> [(NRiver, Score)]  -- スコア上位 n個の取得候補
-greedyScores n scoreTbl classes ars =
-  take n $ greedyScores' scoreTbl classes ars
+greedyDiffs :: ScoreTable            -- ^ mine 毎の、site 毎の score のマップ
+            -> UF.Table              -- ^ mine 毎の到達可能 site 集合
+            -> Set NRiver            -- ^ 取得可能の River の集合
+            -> [([NRiver], Integer)] -- ^ スコア上昇値順 候補手グループ
+greedyDiffs scoreTbl classes ars =
+    map (second (subtract curScore)) $ greedyScores scoreTbl classes ars
+  where
+    curScore = ScoreTable.computeScore scoreTbl classes
 
-greedyScores' :: ScoreTable
-              -> UF.Table
-              -> Set NRiver
-              -> [(NRiver, Score)]
-greedyScores' scoreTbl classes ars =
-    map (unScoreOrd . unDown) .
-    unfoldr Heap.viewMin $
+greedyScores :: ScoreTable          -- ^ mine 毎の、site 毎の score のマップ
+             -> UF.Table            -- ^ mine 毎の到達可能 site 集合
+             -> Set NRiver          -- ^ 取得可能の River の集合
+             -> [([NRiver], Score)] -- ^ スコア上位順 候補手グループ
+greedyScores scoreTbl classes ars =
+    foldr aggregate [] .     -- [[(NRiver, Score)]] -> [([NRiver], Score)]
+    map (map unScoreOrd) .
+    group .
+    map unDown .
+    unfoldr Heap.viewMin $   -- Heap (Down ScoreOrd) -> [Down ScoreOrd]
     Heap.fromList
     [ Down $ ScoreOrd (r, ScoreTable.computeScore scoreTbl $ UF.unify classes s t)
     | r <- Set.toList ars, let (s,t) = deNRiver r]
   where
     unDown (Down x) = x
+    aggregate (xs@((_rv, sc):_)) ys = (map fst xs, sc) : ys
+    aggregate  []               ys =  ys
