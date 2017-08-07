@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module OfflinePlay where
 
@@ -55,7 +56,13 @@ runPunterOffline' name _ =
     sendSetup :: P.Setup -> MaybeT IO ()
     sendSetup si  = lift $ send (Punter.setup si :: P.Ready a) *> loop
     play' :: P.PrevMoves a -> MaybeT IO ()
-    play' mvs =  lift (send =<< Punter.play mvs *> loop)
+    play' mvs =  lift (send =<< playup' *> loop)
+      where
+        playup' = do
+          mymv@P.MyMove{P.move = mv, P.state = s} <- Punter.play mvs
+          let s' = fmap (applyMoves (P.Moves { P.moves = [mv] })) s
+          return $ mymv { P.state = s' }
+          
     
 result :: (String -> b) -> (a -> b) -> Result a -> b
 result f g r = case r of
