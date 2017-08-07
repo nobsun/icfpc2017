@@ -6,7 +6,7 @@ import Data.Bool (bool)
 import Control.Monad (forM_)
 import qualified Data.Aeson as J
 import qualified Data.IntMap.Lazy as IM
-import Data.List (maximumBy, foldl')
+import Data.List (maximumBy)
 import Data.Ord
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set
@@ -24,7 +24,6 @@ data Punter
   { setupInfo :: P.Setup
   , scoreTable :: ScoreTable.ScoreTable
   , availableRivers :: Set NRiver
-  , siteClasses :: UF.Table
   , movePool :: CS.MovePool
   }
   deriving (Generic)
@@ -41,7 +40,6 @@ instance Punter.IsPunter Punter where
         { setupInfo = s
         , scoreTable = ScoreTable.mkScoreTable m
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , siteClasses = UF.emptyTable
         , movePool = CS.empty
         }
     , P.futures = Nothing
@@ -49,24 +47,13 @@ instance Punter.IsPunter Punter where
     where
       m = P.map s
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, siteClasses = siteClasses1, movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , siteClasses = siteClasses2
-    , movePool = movePool2
+    , movePool = CS.applyMoves moves movePool1
     }
-    where
-      siteClasses2 = foldl' f siteClasses1 moves
-        where
-          f tbl (P.MvClaim punter' s t)
-            | punter' == P.setupPunter si  = UF.unify tbl s t
-            | otherwise                    = tbl
-          f tbl (P.MvPass {})              = tbl
 
-      movePool2 = CS.applyMoves moves movePool1
-
-
-  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, siteClasses = siteClasses1 } =
+  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, movePool = pool } =
     if Set.null ars then
       P.MvPass punterId
     else
@@ -74,8 +61,8 @@ instance Punter.IsPunter Punter where
       in P.MvClaim punterId s t
     where
       punterId = P.setupPunter si
-
-      scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses1 s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
+      siteClasses = CS.reachabilityOf pool punterId
+      scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
 
   logger p@Punter { setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores

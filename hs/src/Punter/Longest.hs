@@ -5,7 +5,7 @@
 module Punter.Longest where
 
 import qualified Data.Aeson as J
-import Data.List (sortBy, foldl')
+import Data.List (sortBy)
 import Data.Ord
 import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HashMap
@@ -15,6 +15,7 @@ import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
+import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
@@ -27,8 +28,7 @@ data Punter
   { setupInfo :: P.Setup
   , scoreTable :: ScoreTable.ScoreTable
   , availableRivers :: Set NRiver
-  , myRivers :: Set NRiver
-  , siteClasses :: UF.Table
+  , movePool :: CS.MovePool
   , targets :: [(P.SiteId, P.SiteId)]
   }
   deriving (Generic)
@@ -45,8 +45,7 @@ instance Punter.IsPunter Punter where
         { setupInfo = s
         , scoreTable = sc
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , myRivers = Set.empty
-        , siteClasses = UF.emptyTable
+        , movePool = CS.empty
         , targets = map fst $ sortBy (flip (comparing snd)) [((mine,site),w) | (mine,sites) <- IntMap.toList sc, (site,w) <- IntMap.toList sites]
         }
     , P.futures = Nothing
@@ -55,29 +54,22 @@ instance Punter.IsPunter Punter where
       m = P.map s
       sc = ScoreTable.mkScoreTable m
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, siteClasses = siteClasses1, myRivers = myRivers1 } =
+  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
-    , siteClasses = siteClasses2
+    , movePool = CS.applyMoves moves movePool1
     }
-    where
-      punterId = P.setupPunter si
-
-      siteClasses2 = foldl' f siteClasses1 moves
-        where
-          f tbl (P.MvClaim punter' s t)
-            | punter' == punterId = UF.unify tbl s t
-          f tbl _ = tbl
 
   chooseMoveSimple = undefined
 
-  chooseMove p@Punter{ setupInfo = si, availableRivers = ars, myRivers = mrs, siteClasses = siteClasses1, targets = tgs }
+  chooseMove p@Punter{ setupInfo = si, availableRivers = ars, movePool = pool, targets = tgs }
     | Set.null ars = P.MyMove (P.MvPass punterId) (Just p)
     | Just r <- mr, (s,t) <- deNRiver r = P.MyMove (P.MvClaim punterId s t) (Just p{ targets = tgs2 })
     | otherwise = P.MyMove (P.MvPass punterId) (Just p)
     where
       punterId = P.setupPunter si
+      siteClasses1 = CS.reachabilityOf pool punterId
+      mrs = CS.riversOf pool punterId
 
       (mr, tgs2) = f tgs
 

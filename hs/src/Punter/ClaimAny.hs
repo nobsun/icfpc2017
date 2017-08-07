@@ -35,7 +35,7 @@ instance Punter.IsPunter Punter where
     , P.futures = Nothing
     }
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1 } =
+  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
     }
