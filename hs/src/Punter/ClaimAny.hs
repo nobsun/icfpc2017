@@ -17,7 +17,6 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , availableRivers :: Set NRiver
-  , myRivers :: Set NRiver
   }
   deriving (Generic, Show)
 
@@ -32,18 +31,14 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , availableRivers = Set.fromList [ toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
-        , myRivers = Set.empty
         }
     , P.futures = Nothing
     }
 
-  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1, myRivers = myRivers1 } =
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, availableRivers = availableRivers1 } =
     p1
     { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , myRivers = myRivers1 `Set.union` Set.fromList [ toNRiver' s t | P.MvClaim punter' s t <- moves, punter' == punterId ]
     }
-    where
-      punterId = P.setupPunter si
 
   chooseMoveSimple Punter{ setupInfo = si, availableRivers = availableRivers1 } =
     case listToMaybe $ Set.toList $ availableRivers1 of
