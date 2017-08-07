@@ -1,5 +1,7 @@
 module Strategy.Score
-  ( greedyDiffs
+  (
+    -- 候補手グループを取得しすぎないように注意
+    greedyDiffs
   , greedyScores
   ) where
 
