@@ -138,6 +138,11 @@ data Move
     { punter :: PunterId
     , route  :: [SiteId]
     }
+  | MvOption
+    { punter :: PunterId
+    , source :: SiteId
+    , target :: SiteId
+    }
   deriving (Generic, Show)
 
 instance ToJSON Move where
@@ -159,6 +164,14 @@ instance ToJSON Move where
         , "route"  .= toJSON route'
         ]
     ]
+  toJSON (MvOption punterId src tgt) = object $
+    [ "option" .=
+        object
+        [ "punter" .= toJSON punterId
+        , "source" .= toJSON src
+        , "target" .= toJSON tgt
+        ]
+    ]
   
 instance FromJSON Move where
   parseJSON = do
@@ -170,6 +183,8 @@ instance FromJSON Move where
                     return $ withObject "pass" (\obj2 -> MvPass <$> (obj2 .: "punter")) pass
                , do splurge <- HashMap.lookup "splurge" obj
                     return $ withObject "splurge" (\obj2 -> MvSplurge <$> (obj2 .: "punter") <*> (obj2 .: "route")) splurge
+               , do option <- HashMap.lookup "option" obj
+                    return $ withObject "option" (\obj2 -> MvClaim <$> (obj2 .: "punter") <*> (obj2 .: "source") <*> (obj2 .: "target")) option
                ]
       case m of
         Just act -> act
