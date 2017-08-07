@@ -32,12 +32,15 @@ library
                      , Punter.Alternate
                      , Punter.STF
                      , Punter.Longest
+                     , Punter.Connector
                      , Punters
                      , Strategy.Score
                      , Strategy.Degree
+                     , Strategy.Neighbor
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
+                     , DistanceTable
 --                     , GraphUtils
   ghc-options:         -Wall
   build-depends:       base >= 4.7 && < 5

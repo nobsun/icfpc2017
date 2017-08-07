@@ -10,6 +10,7 @@ import qualified Punter.MaxDegree as MaxDegree
 import qualified Punter.Alternate as Alternate
 import qualified Punter.STF as STF
 import qualified Punter.Longest as Longest
+import qualified Punter.Connector as Connector
 
 names :: [String]
 names =
@@ -20,6 +21,7 @@ names =
   , "greedy2"
   , "stf"
   , "longest"
+  , "connector"
   ]
 
 withPunter :: String -> (forall a. Punter.IsPunter a => Proxy a -> b) -> Maybe b
@@ -32,4 +34,5 @@ withPunter name k =
     "greedy2" -> Just $ k (Proxy :: Proxy (Alternate.Alternate MaxDegree.Punter GreedyPunter.Punter))
     "stf" -> Just $ k (Proxy :: Proxy STF.Punter)
     "longest" -> Just $ k (Proxy :: Proxy Longest.Punter)
+    "connector" -> Just $ k (Proxy :: Proxy Connector.Punter)
     _ -> Nothing
