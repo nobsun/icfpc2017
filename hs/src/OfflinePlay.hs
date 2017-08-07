@@ -56,12 +56,12 @@ runPunterOffline' name _ =
     sendSetup :: P.Setup -> MaybeT IO ()
     sendSetup si  = lift $ send (Punter.setup si :: P.Ready a) *> loop
     play' :: P.PrevMoves a -> MaybeT IO ()
-    play' mvs =  lift (send =<< playup' *> loop)
+    play' mvs =  lift (send =<< playWithNextState' *> loop)
       where
-        playup' = do
+        playWithNextState' = do
           mymv@P.MyMove{P.move = mv, P.state = s} <- Punter.play mvs
           let s' = fmap (applyMoves (P.Moves { P.moves = [mv] })) s
-          return $ mymv { P.state = s' }
+          return $ (mymv :: P.MyMove a) { P.state = s' }
           
     
 result :: (String -> b) -> (a -> b) -> Result a -> b
