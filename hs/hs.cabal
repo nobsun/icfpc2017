@@ -33,6 +33,7 @@ library
                      , Punter.STF
                      , Punter.Longest
                      , Punters
+                     , Strategy.Score
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
