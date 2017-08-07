@@ -84,13 +84,30 @@ instance Punter.IsPunter Punter where
         let currScore = CS.scoreOf pool tbl punterId
         s1 <- IntSet.toList mineReprs
         let st = dijkstra g [s1]
+            {-
+            最短経路でその頂点に到達したときの
+            * 到達可能性関係を計算
+            * スコア
+            を計算。
+            -}
+            es :: HashMap P.SiteId (UF.Table, ScoreTable.Score)
+            es = fmap f st
+              where
+                f (_, Nothing) = (equiv, currScore)
+                f (_, Just (parent, r))
+                  | r `Set.member` mrs = (equiv',  score')
+                  | otherwise          = (equiv'', score'')
+                  where
+                    (equiv', score') = es HashMap.! parent
+                    equiv'' = uncurry (UF.unify equiv') (deNRiver r)
+                    score'' = ScoreTable.computeScore tbl equiv''
         s2 <- IntSet.toList siteReprs
         guard $ s1 /= s2
         case HashMap.lookup s2 st of
           Nothing -> mzero
           Just (n, _) -> do
             let p = path st s2
-                futureScore = ScoreTable.computeScore tbl (UF.unifyN equiv (map deNRiver p))
+                (_, futureScore) = es HashMap.! s2
                 nextRiver = head [r | r <- p, r `Set.member` CS.unclaimedRivers pool]
                 reward = fromIntegral (futureScore - currScore) / fromIntegral n -- 将来報酬の割引をすると良い
             return (nextRiver, reward)
