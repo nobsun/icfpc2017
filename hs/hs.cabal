@@ -36,6 +36,7 @@ library
                      , Punters
                      , Strategy.Score
                      , Strategy.Degree
+                     , Strategy.Neighbor
                      , Dijkstra
                      , UnionFind
                      , ScoreTable
