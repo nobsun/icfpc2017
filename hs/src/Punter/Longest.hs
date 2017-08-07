@@ -11,7 +11,6 @@ import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HashMap
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
-import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
@@ -27,7 +26,6 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , scoreTable :: ScoreTable.ScoreTable
-  , availableRivers :: Set NRiver
   , movePool :: CS.MovePool
   , targets :: [(P.SiteId, P.SiteId)]
   }
@@ -44,8 +42,7 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , scoreTable = sc
-        , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , movePool = CS.empty
+        , movePool = CS.empty m
         , targets = map fst $ sortBy (flip (comparing snd)) [((mine,site),w) | (mine,sites) <- IntMap.toList sc, (site,w) <- IntMap.toList sites]
         }
     , P.futures = Nothing
@@ -54,21 +51,21 @@ instance Punter.IsPunter Punter where
       m = P.map s
       sc = ScoreTable.mkScoreTable m
 
-  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
-    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , movePool = CS.applyMoves moves movePool1
+    { movePool = CS.applyMoves moves movePool1
     }
 
   chooseMoveSimple = undefined
 
-  chooseMove p@Punter{ setupInfo = si, availableRivers = ars, movePool = pool, targets = tgs }
+  chooseMove p@Punter{ setupInfo = si, movePool = pool, targets = tgs }
     | Set.null ars = P.MyMove (P.MvPass punterId) (Just p)
     | Just r <- mr, (s,t) <- deNRiver r = P.MyMove (P.MvClaim punterId s t) (Just p{ targets = tgs2 })
     | otherwise = P.MyMove (P.MvPass punterId) (Just p)
     where
       punterId = P.setupPunter si
       siteClasses1 = CS.reachabilityOf pool punterId
+      ars = CS.unclaimedRivers pool
       mrs = CS.riversOf pool punterId
 
       (mr, tgs2) = f tgs

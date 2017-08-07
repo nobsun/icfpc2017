@@ -10,6 +10,7 @@ module CommonState
   , reachabilityOf
   , scoreOf
   , scores
+  , unclaimedRivers
   ) where
 
 import Data.List (foldl')
@@ -23,28 +24,47 @@ import qualified UnionFind as UF
 import qualified ScoreTable as ScoreTable
 import NormTypes
 
-data MovePool = MovePool { pool :: IM.IntMap Entry } deriving (Show, Generic)
+
+data MovePool
+  = MovePool
+  { unclaimedRivers :: Set NRiver
+  , pool :: IM.IntMap Entry
+  } deriving (Show, Generic)
 
 type Entry = (Set NRiver, UF.Table)
 
 emptyEntry :: Entry
 emptyEntry = (Set.empty, UF.emptyTable)
 
-empty :: MovePool
-empty = MovePool { pool = IM.empty }
+empty :: P.Map -> MovePool
+empty m =
+  MovePool
+  { unclaimedRivers = Set.fromList $ map toNRiver $ P.rivers m
+  , pool = IM.empty
+  }
 
 applyMoves :: [P.Move] -> MovePool -> MovePool
-applyMoves moves (MovePool {pool = pl}) = MovePool $ foldl' upsert pl moves
+applyMoves moves pl = foldl' (flip applyMove) pl moves
 
-upsert :: IM.IntMap (Set NRiver, UF.Table) -> P.Move -> IM.IntMap (Set NRiver, UF.Table)
-upsert pl (P.MvClaim p s t) = IM.insert p (Set.insert (toNRiver' s t) rs, UF.unify e s t) pl
+applyMove :: P.Move -> MovePool -> MovePool
+applyMove (P.MvPass _) pl = pl
+applyMove (P.MvClaim p s t) MovePool{ unclaimedRivers = urs, pool = pl } =
+  MovePool
+  { unclaimedRivers = Set.delete r urs
+  , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
+  }
   where
     (rs, e) = IM.findWithDefault emptyEntry p pl
-upsert pl (P.MvPass _) = pl
-upsert pl (P.MvSplurge p ss) = IM.insert p (rs `Set.union` Set.fromList [toNRiver' s t | (s,t) <- rs2], UF.unifyN e rs2) pl
+    r = toNRiver' s t
+applyMove (P.MvSplurge p ss) MovePool{ unclaimedRivers = urs, pool = pl } =
+  MovePool
+  { unclaimedRivers = urs Set.\\ rs2'
+  , pool = IM.insert p (rs `Set.union` rs2', UF.unifyN e rs2) pl
+  }
   where
     (rs, e) = IM.findWithDefault emptyEntry p pl
     rs2 = zip ss (tail ss)
+    rs2' = Set.fromList $ map (uncurry toNRiver') rs2
 
 instance J.ToJSON MovePool
 instance J.FromJSON MovePool

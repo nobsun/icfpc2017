@@ -6,17 +6,17 @@ module Punter.ClaimAny where
 
 import qualified Data.Aeson as J
 import Data.Maybe (listToMaybe)
-import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
+import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
-import NormTypes (NRiver, toNRiver', deNRiver)
+import NormTypes (deNRiver)
 
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , availableRivers :: Set NRiver
+  , movePool :: CS.MovePool
   }
   deriving (Generic, Show)
 
@@ -30,18 +30,18 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , availableRivers = Set.fromList [ toNRiver' s' t' | P.River s' t' <- P.rivers (P.map s)]
+        , movePool = CS.empty (P.map s)
         }
     , P.futures = Nothing
     }
 
-  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1 } =
+  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
-    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
+    { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, availableRivers = availableRivers1 } =
-    case listToMaybe $ Set.toList $ availableRivers1 of
+  chooseMoveSimple Punter{ setupInfo = si, movePool = pool } =
+    case listToMaybe $ Set.toList $ CS.unclaimedRivers pool of
       Nothing -> P.MvPass punterId
       Just r | (s,t) <- deNRiver r -> P.MvClaim punterId s t
     where
