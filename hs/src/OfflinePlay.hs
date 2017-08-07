@@ -60,10 +60,13 @@ send x = do
   L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
 
+processTimeoutSecond :: Int
+processTimeoutSecond = 600
+
 recv :: J.FromJSON a => String -> IO a
 recv name = do
-  s  <- (maybe (hPutStrLn stderr "timed out." *> exitSuccess) return =<<) .
-        timeout (5 * 1000 * 1000) $ do
+  s  <- (maybe (hPutStrLn stderr "OfflinePlay: Timeout of waiting input. exiting." *> exitSuccess) return =<<) .
+        timeout (processTimeoutSecond * 1000 * 1000) $ do
     len <- getLength []
     L8.hGet stdin len
   L8.hPutStrLn stderr $ "<- " <> s
