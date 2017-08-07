@@ -1,8 +1,8 @@
 module Strategy.Score
   (
     -- 候補手グループを取得しすぎないように注意
-    greedyDiffs
-  , greedyScores
+    greedyDiffs,
+    greedyScores,
   ) where
 
 -- score を最大化する候補手
