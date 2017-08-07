@@ -12,11 +12,15 @@ module UnionFind
   , getClass
   , getClasses
   , unify
+  , unifyN
+  , areSameClass
   ) where
 
 import qualified Data.Aeson as J
+import Data.Function
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as IntMap
+import Data.List (foldl')
 import GHC.Generics
 
 data Class
@@ -92,3 +96,9 @@ unify tbl a b
     b' = getRepr tbl b
     as = getClass' tbl a'
     bs = getClass' tbl b'
+
+unifyN :: Table -> [(Int,Int)] -> Table
+unifyN tbl = foldl' (\tbl' (a,b) -> unify tbl' a b) tbl
+
+areSameClass :: Table -> Int -> Int -> Bool
+areSameClass tbl = (==) `on` getRepr tbl
