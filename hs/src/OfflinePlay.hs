@@ -61,7 +61,7 @@ send x = do
   hFlush stdout
 
 processTimeoutSecond :: Int
-processTimeoutSecond = 90
+processTimeoutSecond = 180
 
 recv :: J.FromJSON a => String -> IO a
 recv name = do
