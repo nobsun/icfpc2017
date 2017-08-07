@@ -11,6 +11,7 @@ module CommonState
   , scoreOf
   , scores
   , unclaimedRivers
+  , optionableRivers -- オプション機能が有効になっているかチェックしていないので注意
   ) where
 
 import Data.List (foldl')
@@ -28,6 +29,7 @@ import NormTypes
 data MovePool
   = MovePool
   { unclaimedRivers :: Set NRiver
+  , optionableRivers :: Set NRiver
   , pool :: IM.IntMap Entry
   } deriving (Show, Generic)
 
@@ -40,6 +42,7 @@ empty :: P.Map -> MovePool
 empty m =
   MovePool
   { unclaimedRivers = Set.fromList $ map toNRiver $ P.rivers m
+  , optionableRivers = Set.empty
   , pool = IM.empty
   }
 
@@ -48,17 +51,27 @@ applyMoves moves pl = foldl' (flip applyMove) pl moves
 
 applyMove :: P.Move -> MovePool -> MovePool
 applyMove (P.MvPass _) pl = pl
-applyMove (P.MvClaim p s t) MovePool{ unclaimedRivers = urs, pool = pl } =
+applyMove (P.MvClaim p s t) MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl } =
   MovePool
   { unclaimedRivers = Set.delete r urs
+  , optionableRivers = Set.insert r ors
   , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
   }
   where
     (rs, e) = IM.findWithDefault emptyEntry p pl
     r = toNRiver' s t
-applyMove (P.MvSplurge p ss) MovePool{ unclaimedRivers = urs, pool = pl } =
+applyMove (P.MvOption p s t) orig@MovePool{ optionableRivers = ors, pool = pl } =
+  orig
+  { optionableRivers = Set.delete r ors
+  , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
+  }
+  where
+    (rs, e) = IM.findWithDefault emptyEntry p pl
+    r = toNRiver' s t
+applyMove (P.MvSplurge p ss) MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl } =
   MovePool
   { unclaimedRivers = urs Set.\\ rs2'
+  , optionableRivers = ors Set.\\ (rs2' Set.\\ urs)
   , pool = IM.insert p (rs `Set.union` rs2', UF.unifyN e rs2) pl
   }
   where
