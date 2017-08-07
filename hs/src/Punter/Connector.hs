@@ -61,7 +61,7 @@ instance Punter.IsPunter Punter where
         in P.MvClaim punterId s t
     | not (Set.null ars) =
         let -- 自分以外で最もスコアの高いプレイヤーにとってのスコア最大の川を取得する（＝邪魔をする）
-            punter' = fst $ maximumBy (comparing snd) [(punter'', c) | (punter'', c) <- IM.toList (CS.scores pool tbl), punter' /= punterId]
+            punter' = fst $ maximumBy (comparing snd) [(punter'', c) | (punter'', c) <- IM.toList (CS.scores pool tbl), punter'' /= punterId]
             equiv'  = CS.reachabilityOf pool punter'
             (s,t)   = fst $ maximumBy (comparing snd) [((s',t'), ScoreTable.computeScore tbl (UF.unify equiv' s' t')) | r <- Set.toList ars, let (s',t') = deNRiver r]
         in P.MvClaim punterId s t
