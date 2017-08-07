@@ -77,10 +77,10 @@ instance Punter.IsPunter Punter where
 
       scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses1 s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
 
-  logger Punter{ setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
+  logger Punter{ setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pl } = do
     -- scores
-    forM_ (IM.toList $ scores pool) $ \(pid, s) -> do
+    forM_ (IM.toList $ scores pl) $ \(pid, s) -> do
       writeLog $ (bool "  "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
     where
       scores :: MovePool -> IM.IntMap Integer
-      scores MovePool{ CS.pool = pl} = IM.mapWithKey (\_ t -> ScoreTable.computeScore tbl t) pl
+      scores MovePool{ CS.pool = p} = IM.mapWithKey (\_ t -> ScoreTable.computeScore tbl t) p
