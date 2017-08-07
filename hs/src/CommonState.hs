@@ -22,6 +22,7 @@ applyMoves moves (MovePool {pool = pl}) = MovePool $ foldl' upsert pl moves
 upsert :: IM.IntMap UF.Table -> P.Move -> IM.IntMap UF.Table
 upsert pl (P.MvClaim p s t) = IM.insert p (UF.unify (IM.findWithDefault UF.emptyTable p pl) s t) pl
 upsert pl (P.MvPass _) = pl
+upsert pl (P.MvSplurge p ss) = IM.insert p (UF.unifyN (IM.findWithDefault UF.emptyTable p pl) (zip ss (tail ss))) pl
 
 instance J.ToJSON MovePool
 instance J.FromJSON MovePool
