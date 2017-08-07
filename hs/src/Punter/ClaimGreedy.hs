@@ -5,14 +5,14 @@ module Punter.ClaimGreedy where
 import Data.Bool (bool)
 import Control.Monad (forM_)
 import qualified Data.Aeson as J
-import qualified Data.IntMap.Lazy as IM (IntMap, mapWithKey, toList)
+import qualified Data.IntMap.Lazy as IM
 import Data.List (maximumBy, foldl')
 import Data.Ord
 import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
-import CommonState as CS
+import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
@@ -25,7 +25,7 @@ data Punter
   , scoreTable :: ScoreTable.ScoreTable
   , availableRivers :: Set NRiver
   , siteClasses :: UF.Table
-  , movePool :: MovePool
+  , movePool :: CS.MovePool
   }
   deriving (Generic)
 
@@ -79,9 +79,6 @@ instance Punter.IsPunter Punter where
 
   logger p@Punter { setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores
-    forM_ (IM.toList $ scores pool) $ \(pid, s) -> do
+    forM_ (IM.toList $ CS.scores pool tbl) $ \(pid, s) -> do
       putStrLn $ (bool " "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
     return p
-    where
-      scores :: MovePool -> IM.IntMap Integer
-      scores MovePool{ CS.pool = pl} = IM.mapWithKey (\_ t -> ScoreTable.computeScore tbl t) pl
