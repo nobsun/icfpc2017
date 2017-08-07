@@ -54,12 +54,17 @@ instance Punter.IsPunter Punter where
     { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, movePool = pool } =
-    if null candidates then
-      P.MvPass punterId
-    else
-      let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) candidates
-      in P.MvClaim punterId s t
+  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, movePool = pool }
+    | not (null candidates) =
+        let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) candidates
+        in P.MvClaim punterId s t
+    | not (Set.null ars) =
+        let -- 自分以外で最もスコアの高いプレイヤーにとってのスコア最大の川を取得する（＝邪魔をする）
+            punter' = fst $ maximumBy (comparing snd) [(punter'', c) | (punter'', c) <- IM.toList (CS.scores pool tbl), punter' /= punterId]
+            equiv'  = CS.reachabilityOf pool punter'
+            (s,t)   = fst $ maximumBy (comparing snd) [((s',t'), ScoreTable.computeScore tbl (UF.unify equiv' s' t')) | r <- Set.toList ars, let (s',t') = deNRiver r]
+        in P.MvClaim punterId s t
+    | otherwise = P.MvPass punterId
     where
       punterId = P.setupPunter si
       m = P.map si
