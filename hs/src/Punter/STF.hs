@@ -44,7 +44,7 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , movePool = CS.empty
+        , movePool = CS.empty m
         }
     , P.futures = Nothing
     }

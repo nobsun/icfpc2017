@@ -8,7 +8,6 @@ import qualified Data.Aeson as J
 import qualified Data.IntMap.Lazy as IM
 import Data.List (maximumBy)
 import Data.Ord
-import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
@@ -23,7 +22,6 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , scoreTable :: ScoreTable.ScoreTable
-  , availableRivers :: Set NRiver
   , movePool :: CS.MovePool
   }
   deriving (Generic)
@@ -39,21 +37,19 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , scoreTable = ScoreTable.mkScoreTable m
-        , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
-        , movePool = CS.empty
+        , movePool = CS.empty m
         }
     , P.futures = Nothing
     }
     where
       m = P.map s
 
-  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
-    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , movePool = CS.applyMoves moves movePool1
+    { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, availableRivers = ars, movePool = pool } =
+  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, movePool = pool } =
     if Set.null ars then
       P.MvPass punterId
     else
@@ -61,6 +57,7 @@ instance Punter.IsPunter Punter where
       in P.MvClaim punterId s t
     where
       punterId = P.setupPunter si
+      ars = CS.unclaimedRivers pool
       siteClasses = CS.reachabilityOf pool punterId
       scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
 
