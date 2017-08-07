@@ -11,6 +11,7 @@ import qualified Punter.Alternate as Alternate
 import qualified Punter.STF as STF
 import qualified Punter.Longest as Longest
 import qualified Punter.Connector as Connector
+import qualified Punter.MixedStrategy as Mixed
 
 names :: [String]
 names =
@@ -22,6 +23,7 @@ names =
   , "stf"
   , "longest"
   , "connector"
+  , "mixed"
   ]
 
 withPunter :: String -> (forall a. Punter.IsPunter a => Proxy a -> b) -> Maybe b
@@ -35,4 +37,5 @@ withPunter name k =
     "stf" -> Just $ k (Proxy :: Proxy STF.Punter)
     "longest" -> Just $ k (Proxy :: Proxy Longest.Punter)
     "connector" -> Just $ k (Proxy :: Proxy Connector.Punter)
+    "mixed" -> Just $ k (Proxy :: Proxy Mixed.Punter)
     _ -> Nothing
