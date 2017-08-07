@@ -28,19 +28,19 @@ fi
 
 p1=$4
 if [ x"$p1" = x ]; then
-    p1=greedy
+    p1=pass
 fi
 
 
 n2=$(expr "$n" '-' 2)
 
 for i in $(seq 1 $n2) ; do
-    log=log/${port}/any-junk/${i}.out
+    log=log/${port}/pass-junk/${i}.out
     mkdir -p $(dirname $log)
-    ./run-lamduct.sh $port any > $log 2>&1  &
+    ./run-lamduct.sh $port pass > $log 2>&1  &
 done
 
-log=log/${port}/${p1}.out
+log=log/${port}/${p1}_1.out
 mkdir -p $(dirname $log)
 
 sleep 0.5
@@ -48,7 +48,7 @@ sleep 0.5
 ./run-lamduct.sh $port ${p1} > $log 2>&1 &
 
 
-log=log/${port}/${p0}.out
+log=log/${port}/${p0}_0.out
 mkdir -p $(dirname $log)
 
 sleep 0.5

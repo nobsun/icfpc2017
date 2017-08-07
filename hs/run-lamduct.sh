@@ -50,7 +50,8 @@ EOF
 
 set -x
 
-log=log/${port}/${punter}.cli
+
+log=log/${port}/${punter}-$(date +%Y-%m%d-%H%M_%N).cli
 
 rm -f $log
 mkdir -p $(dirname $log)
