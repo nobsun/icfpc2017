@@ -33,6 +33,7 @@ library
                      , Punter.STF
                      , Punter.Longest
                      , Punter.Connector
+                     , Punter.MixedStrategy
                      , Punters
                      , Strategy.Score
                      , Strategy.Degree
