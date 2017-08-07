@@ -15,7 +15,6 @@ import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HashMap
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
-import Data.Set (Set, (\\))
 import qualified Data.Set as Set
 import GHC.Generics
 
@@ -28,7 +27,6 @@ import Dijkstra
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , availableRivers :: Set NRiver
   , movePool :: CS.MovePool
   }
   deriving (Generic)
@@ -43,7 +41,6 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , availableRivers = Set.fromList [toNRiver' s' t' | P.River s' t' <- P.rivers m]
         , movePool = CS.empty m
         }
     , P.futures = Nothing
@@ -51,13 +48,12 @@ instance Punter.IsPunter Punter where
     where
       m = P.map s
 
-  applyMoves (P.Moves moves) p1@Punter{ availableRivers = availableRivers1, movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
-    { availableRivers = availableRivers1 \\ Set.fromList [ toNRiver' s t | P.MvClaim _punter' s t <- moves ]
-    , movePool = CS.applyMoves moves movePool1
+    { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, availableRivers = ars, movePool = pool }
+  chooseMoveSimple Punter{ setupInfo = si, movePool = pool }
     | Set.null ars = P.MvPass punterId
     | Map.null tbl = P.MvPass punterId
     | otherwise =
@@ -65,6 +61,7 @@ instance Punter.IsPunter Punter where
         in P.MvClaim punterId s t
     where
       punterId = P.setupPunter si
+      ars = CS.unclaimedRivers pool
       mrs = CS.riversOf pool punterId
 
       tbl :: Map NRiver Int
