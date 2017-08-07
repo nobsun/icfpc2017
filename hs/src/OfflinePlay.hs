@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DuplicateRecordFields #-}
 
 module OfflinePlay where
 
@@ -41,29 +40,13 @@ runPunterOffline' name _ =
       jsonv <- recv "multiplex"
 
       (maybe (fail $ "unknown messsage: " ++ show jsonv) pure =<<) . runMaybeT $
-        (play' =<< prevmoves' jsonv)
-        <|>     --- check gameplay first
-        (sendSetup =<< setup' jsonv)
-        <|>
-        (const (pure ()) =<< scoring' jsonv)
-        
-    -- define
-    recv' js = result (const empty) pure (J.fromJSON js)
-    prevmoves' :: J.Value -> MaybeT IO (P.PrevMoves a)
-    scoring' ::  J.Value -> MaybeT IO P.Scoring
-    setup' :: J.Value -> MaybeT IO P.Setup
-    (prevmoves', scoring', setup') = (recv', recv', recv')
-    sendSetup :: P.Setup -> MaybeT IO ()
-    sendSetup si  = lift $ send (Punter.setup si :: P.Ready a) *> loop
-    play' :: P.PrevMoves a -> MaybeT IO ()
-    play' mvs =  lift ((send =<< playWithNextState') *> loop)
-      where
-        playWithNextState' = do
-          mymv@P.MyMove{P.move = mv, P.state = s} <- Punter.play mvs
-          let s' = fmap (applyMoves (P.Moves { P.moves = [mv] })) s
-          return $ (mymv :: P.MyMove a) { P.state = s' }
-          
-    
+        ((\moves     -> lift $ (send =<< Punter.play moves)               *> loop) =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result (P.PrevMoves a)))       <|>     --- check gameplay first
+        ((\setupInfo -> lift $ send (Punter.setup setupInfo :: P.Ready a) *> loop) =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result P.Setup))               <|>
+        (const (pure ())                                                           =<<
+          result (const empty) pure (J.fromJSON jsonv :: Result P.Scoring))
+
 result :: (String -> b) -> (a -> b) -> Result a -> b
 result f g r = case r of
   Error   s  ->  f s
