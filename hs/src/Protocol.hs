@@ -30,7 +30,7 @@ data Setup = Setup
   { punter :: PunterId
   , punters :: Int
   , map :: Map
-  , setting :: Maybe Settings
+  , settings :: Maybe Settings
   } deriving (Generic, Show)
 
 setupPunter :: Setup -> PunterId
@@ -96,15 +96,21 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
-data Settings = Settings { futures :: Bool } deriving (Generic, Show)
+data Settings = Settings { futures  :: Maybe Bool
+                         , splurges :: Maybe Bool
+                         , options  :: Maybe Bool
+                         }
+              deriving (Generic, Show)
+
+instance ToJSON Settings where
+  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
+instance FromJSON Settings
+
 type Futures = [Future]
 
 data Future = Future { source :: SiteId
                      , target :: SiteId
                      } deriving (Generic, Show)
-
-instance ToJSON Settings
-instance FromJSON Settings
 
 instance ToJSON Future
 instance FromJSON Future
