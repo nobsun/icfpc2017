@@ -54,13 +54,11 @@ result f g r = case r of
 
 send :: J.ToJSON a => a -> IO ()
 send x = do
-  let json = fmap conv J.encode x
+  let json = J.encode x
   L8.hPutStrLn stderr ("-> " <> json)
   hFlush stderr
-  L8.hPutStr stdout json -- $ L8.pack (show (L8.length json)) <> ":" <> json
+  L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
-  where
-    conv j = L8.pack (show (L8.length j)) <> ":" <> j
 
 processTimeoutSecond :: Int
 processTimeoutSecond = 600
