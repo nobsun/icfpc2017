@@ -35,8 +35,10 @@ mineDistances :: DistanceTable
               -> [(Distance, P.SiteId)]
 mineDistances table uf sss = do
   (mine, tbl) <- IntMap.toList table
-  ss <- sss
-  return $ minimumBy (comparing fst) [(IntMap.findWithDefault maxBound site tbl, mine) | site <- UF.classToList (UF.getClass uf ss)]
+  return . minimumBy (comparing fst) $ do
+    ss <- sss
+    site <- UF.classToList (UF.getClass uf ss)
+    return (IntMap.findWithDefault maxBound site tbl, mine)
 
 _testMap :: P.Map
 _testMap =
