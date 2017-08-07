@@ -9,6 +9,7 @@ import Data.Aeson
 import Data.Aeson.Types
 import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.ByteString.Lazy as BSL
+import Data.Maybe
 import Data.Text
 
 -- Handshake
@@ -133,6 +134,10 @@ data Move
   | MvPass
     { punter :: PunterId
     }
+  | MvSplurge
+    { punter :: PunterId
+    , route  :: [SiteId]
+    }
   deriving (Generic, Show)
 
 instance ToJSON Move where
@@ -147,23 +152,28 @@ instance ToJSON Move where
   toJSON (MvPass punterId) = object $
     [ "pass" .= object [ "punter" .= toJSON punterId ]
     ]
-
+  toJSON (MvSplurge punterId route') = object $
+    [ "splurge" .=
+        object
+        [ "punter" .= toJSON punterId
+        , "route"  .= toJSON route'
+        ]
+    ]
+  
 instance FromJSON Move where
   parseJSON = do
-    withObject "Move" $ \obj ->
-      case HashMap.lookup "claim" obj of
-        Just claim -> do
-          let f obj2 =
-                MvClaim
-                <$> (obj2 .: "punter")
-                <*> (obj2 .: "source")
-                <*> (obj2 .: "target")
-          withObject "Claim" f claim
-        Nothing ->
-          case HashMap.lookup "pass" obj of
-            Just pass -> do
-              withObject "pass" (\obj2 -> MvPass <$> (obj2 .: "punter")) pass
-            Nothing -> fail $ show obj ++ " is not valid Move"
+    withObject "Move" $ \obj -> do
+      let m = listToMaybe $ catMaybes
+               [ do claim <- HashMap.lookup "claim" obj
+                    return $ withObject "claim" (\obj2 -> MvClaim <$> (obj2 .: "punter") <*> (obj2 .: "source") <*> (obj2 .: "target")) claim
+               , do pass <- HashMap.lookup "pass" obj
+                    return $ withObject "pass" (\obj2 -> MvPass <$> (obj2 .: "punter")) pass
+               , do splurge <- HashMap.lookup "splurge" obj
+                    return $ withObject "splurge" (\obj2 -> MvSplurge <$> (obj2 .: "punter") <*> (obj2 .: "route")) splurge
+               ]
+      case m of
+        Just act -> act
+        Nothing -> fail $ show obj ++ " is not valid Move"
 
 data Stop = Stop { moves :: [Move]
                  , scores :: [Score]
