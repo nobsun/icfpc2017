@@ -16,7 +16,7 @@ import qualified Data.Set as Set
 import qualified Data.Heap as Heap
 
 import Protocol (SiteId)
-import NormTypes (NRiver, deNRiver)
+import NormTypes (NRiver, deNRiver, toNRiver')
 import qualified UnionFind as UF
 
 
@@ -61,3 +61,12 @@ computeDegree mines ars siteClasses = length $ do
   -- エッジの一方の頂点だけがsitesに含まれる
   guard $ (s `IntSet.member`) sites /= (t `IntSet.member`) sites
   return ()
+
+_testMines :: [SiteId]
+_testMines = [1]
+
+_testAvailRivers :: Set NRiver
+_testAvailRivers = Set.fromList [ toNRiver' 1 2, toNRiver' 1 3, toNRiver' 2 3, toNRiver' 2 4 ]
+
+_testHigherDegrees :: [([NRiver], Int)]
+_testHigherDegrees = higherDegrees _testMines _testAvailRivers UF.emptyTable _testAvailRivers
