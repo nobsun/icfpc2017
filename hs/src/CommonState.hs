@@ -5,6 +5,7 @@
 module CommonState
   ( MovePool
   , empty
+  , applyMove
   , applyMoves
   , riversOf
   , reachabilityOf
