@@ -36,6 +36,9 @@ data Setup = Setup
 setupPunter :: Setup -> PunterId
 setupPunter = punter
 
+settings' :: Setup -> Settings
+settings' = fromMaybe defaultSettings . settings
+
 data Ready a = ReadyOn
   { ready :: PunterId
   , state :: Maybe a
@@ -105,6 +108,14 @@ data Settings = Settings { futures  :: Maybe Bool
 instance ToJSON Settings where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
 instance FromJSON Settings
+
+defaultSettings :: Settings
+defaultSettings =
+    Settings
+    { futures  = Nothing
+    , splurges = Nothing
+    , options  = Nothing
+    }
 
 type Futures = [Future]
 
