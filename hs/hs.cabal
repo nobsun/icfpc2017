@@ -110,6 +110,20 @@ executable runpunter
                      , hs
   default-language:    Haskell2010
 
+executable matchpunters
+  hs-source-dirs:      app
+  main-is:             matchpunters.hs
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , fgl >= 5.5.3.1
+                     , aeson >= 1.0.2.1
+                     , bytestring
+                     , network
+                     , text >= 1.2.2.1
+                     , optparse-applicative
+                     , hs
+  default-language:    Haskell2010
+
 executable punter
   hs-source-dirs:      app
   main-is:             connector.hs
