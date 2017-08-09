@@ -12,13 +12,15 @@ module CommonState
   , scoreOf
   , scores
   , unclaimedRivers
-  , optionableRivers -- オプション機能が有効になっているかチェックしていないので注意
+  , optionableRivers
   ) where
 
+import Control.Monad
 import Data.List (foldl')
 import qualified Data.Aeson as J
 import GHC.Generics
 import qualified Data.IntMap.Lazy as IM
+import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Protocol as P
@@ -32,6 +34,9 @@ data MovePool
   { unclaimedRivers :: Set NRiver
   , optionableRivers :: Set NRiver
   , pool :: IM.IntMap Entry
+  , numOptions :: IM.IntMap Int
+  , pastMoves :: IM.IntMap [P.Move]
+  , splurges :: Bool
   } deriving (Show, Generic)
 
 type Entry = (Set NRiver, UF.Table)
@@ -39,46 +44,83 @@ type Entry = (Set NRiver, UF.Table)
 emptyEntry :: Entry
 emptyEntry = (Set.empty, UF.emptyTable)
 
-empty :: P.Map -> MovePool
-empty m =
+empty :: Int -> P.Map -> P.Settings -> MovePool
+empty numPunters m settings =
   MovePool
   { unclaimedRivers = Set.fromList $ map toNRiver $ P.rivers m
   , optionableRivers = Set.empty
   , pool = IM.empty
+  , numOptions = IM.fromList [(p, initialNumOptions) | p <- [0..numPunters-1]]
+  , pastMoves  = IM.fromList [(p, []) | p <- [0..numPunters-1]]
+  , splurges = fromMaybe False (P.splurges settings)
   }
+  where
+    numMines = length $ P.mines m
+    initialNumOptions =
+      case settings of
+        P.Settings{ P.options = Just True } -> numMines
+        _ -> 0
 
 applyMoves :: [P.Move] -> MovePool -> MovePool
 applyMoves moves pl = foldl' (flip applyMove) pl moves
 
 applyMove :: P.Move -> MovePool -> MovePool
-applyMove (P.MvPass _) pl = pl
-applyMove (P.MvClaim p s t) MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl } =
-  MovePool
-  { unclaimedRivers = Set.delete r urs
-  , optionableRivers = Set.insert r ors
-  , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
-  }
-  where
-    (rs, e) = IM.findWithDefault emptyEntry p pl
-    r = toNRiver' s t
-applyMove (P.MvOption p s t) orig@MovePool{ optionableRivers = ors, pool = pl } =
-  orig
-  { optionableRivers = Set.delete r ors
-  , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
-  }
-  where
-    (rs, e) = IM.findWithDefault emptyEntry p pl
-    r = toNRiver' s t
-applyMove (P.MvSplurge p ss) MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl } =
-  MovePool
-  { unclaimedRivers = urs Set.\\ rs2'
-  , optionableRivers = ors Set.\\ (rs2' Set.\\ urs)
-  , pool = IM.insert p (rs `Set.union` rs2', UF.unifyN e rs2) pl
-  }
-  where
-    (rs, e) = IM.findWithDefault emptyEntry p pl
-    rs2 = zip ss (tail ss)
-    rs2' = Set.fromList $ map (uncurry toNRiver') rs2
+applyMove move pl =
+  case applyMoveChecked move pl of
+    Nothing -> pass (P.punter (move :: P.Move)) pl
+    Just pl' -> pl'
+
+applyMoveChecked :: P.Move -> MovePool -> Maybe MovePool
+applyMoveChecked (P.MvPass p) pl = Just $ pass p pl
+applyMoveChecked move@(P.MvClaim p s t) orig@MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl } = do
+  let r = toNRiver' s t
+  guard $ r `Set.member` urs
+  let (rs, e) = IM.findWithDefault emptyEntry p pl
+  return $
+    orig
+    { unclaimedRivers = Set.delete r urs
+    , optionableRivers = Set.insert r ors
+    , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
+    , pastMoves = IM.adjust (move :) p (pastMoves orig)
+    }
+applyMoveChecked move@(P.MvOption p s t) orig@MovePool{ optionableRivers = ors, pool = pl, numOptions = nOpts } = do
+  let r = toNRiver' s t
+      n = IM.findWithDefault 0 p nOpts
+  guard $ r `Set.member` ors
+  guard $ n > 0
+  let (rs, e) = IM.findWithDefault emptyEntry p pl
+  return $
+    orig
+    { optionableRivers = Set.delete r ors
+    , pool = IM.insert p (Set.insert r rs, UF.unify e s t) pl
+    , numOptions = IM.insert p (n-1) nOpts
+    , pastMoves = IM.adjust (move :) p (pastMoves orig)
+    }
+applyMoveChecked move@(P.MvSplurge p ss) orig@MovePool{ unclaimedRivers = urs, optionableRivers = ors, pool = pl, numOptions = nOpts } = do
+  let (rs, e) = IM.findWithDefault emptyEntry p pl
+      n = IM.findWithDefault 0 p nOpts
+      rs2 = zip ss (tail ss)
+      rs2' = Set.fromList $ map (uncurry toNRiver') rs2
+      optionRivers = rs2' Set.\\ urs
+  guard $ splurges orig
+  guard $ all isPass $ take (length rs2 - 1) $ pastMoves orig IM.! p
+  guard $ optionRivers `Set.isSubsetOf` ors
+  guard $ n >= Set.size optionRivers
+  return $
+    orig
+    { unclaimedRivers = urs Set.\\ rs2'
+    , optionableRivers = ors Set.\\ optionRivers
+    , pool = IM.insert p (rs `Set.union` rs2', UF.unifyN e rs2) pl
+    , numOptions = IM.insert p (n - Set.size optionRivers) nOpts
+    , pastMoves = IM.adjust (move :) p (pastMoves orig)
+    }
+
+pass :: P.PunterId -> MovePool -> MovePool
+pass p orig = orig{ pastMoves = IM.adjust (P.MvPass p :) p (pastMoves orig) }
+
+isPass :: P.Move -> Bool
+isPass (P.MvPass _) = True
+isPass _ = False
 
 instance J.ToJSON MovePool
 instance J.FromJSON MovePool

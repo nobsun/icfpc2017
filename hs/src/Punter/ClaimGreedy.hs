@@ -37,7 +37,7 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , scoreTable = ScoreTable.mkScoreTable m
-        , movePool = CS.empty m
+        , movePool = CS.empty (P.punters s) m (P.settings' s)
         }
     , P.futures = Nothing
     }

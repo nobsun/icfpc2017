@@ -30,7 +30,7 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , movePool = CS.empty (P.map s)
+        , movePool = CS.empty (P.punters s) (P.map s) (P.settings' s)
         }
     , P.futures = Nothing
     }

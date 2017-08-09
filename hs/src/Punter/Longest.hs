@@ -42,7 +42,7 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , scoreTable = sc
-        , movePool = CS.empty m
+        , movePool = CS.empty (P.punters s) m (P.settings' s)
         , targets = map fst $ sortBy (flip (comparing snd)) [((mine,site),w) | (mine,sites) <- IntMap.toList sc, (site,w) <- IntMap.toList sites]
         }
     , P.futures = Nothing
