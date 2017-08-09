@@ -1,4 +1,4 @@
-
+{-# LANGUAGE GADTs #-}
 module Punter where
 
 import System.IO
@@ -34,6 +34,9 @@ play (P.PrevMoves _moves Nothing) = return $ error "Punter.play: no state is ava
 
 writeLog :: String -> IO ()
 writeLog = hPutStrLn stderr
+
+data SomePunter where
+  SomePunter :: IsPunter p => p -> SomePunter
 
 {- --- JSON の decode 結果の可否で区別できるので必要にならなかった
 data OfflineStage
