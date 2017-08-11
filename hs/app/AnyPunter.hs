@@ -3,7 +3,7 @@ module Main where
 
 import Data.Proxy
 import OfflinePlay
-import Punter.ClaimAny
+import Punter.Any
 -- import System.IO
 -- import System.Environment
 

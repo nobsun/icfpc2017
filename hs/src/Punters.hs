@@ -4,8 +4,8 @@ module Punters where
 import Data.Proxy
 import Punter
 import qualified Punter.Pass as PassPunter
-import qualified Punter.ClaimAny as AnyPunter
-import qualified Punter.ClaimGreedy as GreedyPunter
+import qualified Punter.Any as AnyPunter
+import qualified Punter.Greedy as GreedyPunter
 import qualified Punter.MaxDegree as MaxDegree
 import qualified Punter.Alternate as Alternate
 import qualified Punter.STF as STF

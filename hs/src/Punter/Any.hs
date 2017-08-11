@@ -2,7 +2,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-module Punter.ClaimAny where
+module Punter.Any where
 
 import qualified Data.Aeson as J
 import Data.Maybe (listToMaybe)

@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-module Punter.ClaimGreedy where
+module Punter.Greedy where
 
 import Data.Bool (bool)
 import Control.Monad (forM_)

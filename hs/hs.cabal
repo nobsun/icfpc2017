@@ -26,8 +26,8 @@ library
                      , OfflinePlay
                      , Punter
                      , Punter.Pass
-                     , Punter.ClaimAny
-                     , Punter.ClaimGreedy
+                     , Punter.Any
+                     , Punter.Greedy
                      , Punter.MaxDegree
                      , Punter.Alternate
                      , Punter.STF
