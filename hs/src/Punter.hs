@@ -3,10 +3,11 @@ module Punter where
 
 import System.IO
 -- import GHC.Generics (Generic)
+import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON)
 import qualified Protocol as P
 
-class (ToJSON a, FromJSON a) => IsPunter a where
+class (ToJSON a, FromJSON a, NFData a) => IsPunter a where
   setup :: P.Setup -> P.Ready a
 
   -- 自分を含む各Punterの前ターンの手の情報を受け取って情報を更新

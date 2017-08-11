@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 -- 取得済み(距離0扱い)or取得可能(距離1扱い)なエッジだけからなるグラフ上で、
@@ -7,6 +8,7 @@
 -- それらのスパニングツリーに含まれる回数の多いものを選択するという戦略。
 module Punter.STF where
 
+import Control.DeepSeq
 import Control.Monad
 import qualified Data.Aeson as J
 import Data.List (maximumBy)
@@ -29,7 +31,7 @@ data Punter
   { setupInfo :: P.Setup
   , movePool :: CS.MovePool
   }
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter

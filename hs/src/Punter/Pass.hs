@@ -1,14 +1,19 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Punter.Pass where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
+import  GHC.Generics
 import qualified Protocol as P
 import Punter
 
 data Punter = Punter P.PunterId
+  deriving (Generic, NFData)
 
 instance J.ToJSON Punter where
   toJSON (Punter pid) = J.toJSON pid

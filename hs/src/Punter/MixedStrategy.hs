@@ -1,8 +1,10 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
 module Punter.MixedStrategy where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.Maybe
 import qualified Data.Set as Set
@@ -26,7 +28,7 @@ data Punter
   , distanceTable :: DistanceTable
   , movePool :: CS.MovePool
   }
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 
 instance J.ToJSON Punter

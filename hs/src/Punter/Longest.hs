@@ -1,9 +1,11 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module Punter.Longest where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.List (sortBy)
 import Data.Ord
@@ -29,7 +31,7 @@ data Punter
   , movePool :: CS.MovePool
   , targets :: [(P.SiteId, P.SiteId)]
   }
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter

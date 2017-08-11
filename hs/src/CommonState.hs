@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module CommonState
@@ -15,6 +16,7 @@ module CommonState
   , optionableRivers
   ) where
 
+import Control.DeepSeq
 import Control.Monad
 import Data.List (foldl')
 import qualified Data.Aeson as J
@@ -37,7 +39,7 @@ data MovePool
   , numOptions :: IM.IntMap Int
   , pastMoves :: IM.IntMap [P.Move]
   , splurges :: Bool
-  } deriving (Show, Generic)
+  } deriving (Show, Generic, NFData)
 
 type Entry = (Set NRiver, UF.Table)
 

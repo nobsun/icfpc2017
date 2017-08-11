@@ -49,6 +49,7 @@ library
                      , aeson >= 1.0.2.1
                      , bytestring
                      , containers
+                     , deepseq >=1.4.0.0
                      , transformers
                      , hashable
                      , heaps

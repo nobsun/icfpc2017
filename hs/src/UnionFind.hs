@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 module UnionFind
   ( Class (..)
@@ -16,6 +17,7 @@ module UnionFind
   , areSameClass
   ) where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.Function
 import Data.IntMap.Strict (IntMap)
@@ -26,7 +28,7 @@ import GHC.Generics
 data Class
   = ClassSingleton !Int
   | ClassUnion !Int Class Class
-  deriving (Generic, Show)
+  deriving (Generic, Show, NFData)
 
 instance J.ToJSON Class
 instance J.FromJSON Class
@@ -49,7 +51,7 @@ data Table
   { reprs   :: IntMap Int
   , classes :: IntMap Class
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, NFData)
 
 instance J.ToJSON Table
 instance J.FromJSON Table

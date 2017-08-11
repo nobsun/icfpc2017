@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module NormTypes ( NRiver
@@ -10,16 +12,18 @@ module NormTypes ( NRiver
                  , toNClaim
                  ) where
 
+import Control.DeepSeq
 import Data.Set (Set)
 import qualified  Data.Set as Set
 import Data.Aeson
+import GHC.Generics
 
 import Protocol (River (River), PunterId, SiteId)
 
 
 newtype NRiver =
   NRiver (SiteId, SiteId)
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 toNRiver' :: SiteId -> SiteId -> NRiver
 toNRiver' s t = if s < t then NRiver (s, t) else NRiver (t, s)

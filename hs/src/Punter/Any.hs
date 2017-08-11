@@ -1,9 +1,11 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Punter.Any where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.Maybe (listToMaybe)
 import qualified Data.Set as Set
@@ -18,7 +20,7 @@ data Punter
   { setupInfo :: P.Setup
   , movePool :: CS.MovePool
   }
-  deriving (Generic, Show)
+  deriving (Generic, NFData, Show)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter

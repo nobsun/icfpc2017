@@ -1,8 +1,10 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module Punter.Greedy where
 
 import Data.Bool (bool)
+import Control.DeepSeq
 import Control.Monad (forM_)
 import qualified Data.Aeson as J
 import qualified Data.IntMap.Lazy as IM
@@ -23,7 +25,7 @@ data Punter
   , scoreTable :: ScoreTable.ScoreTable
   , movePool :: CS.MovePool
   }
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter

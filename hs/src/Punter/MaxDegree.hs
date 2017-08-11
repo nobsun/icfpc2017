@@ -1,7 +1,9 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 module Punter.MaxDegree where
 
+import Control.DeepSeq
 import Control.Monad
 import qualified Data.Aeson as J
 import Data.List (maximumBy)
@@ -23,7 +25,7 @@ data Punter
   { setupInfo :: P.Setup
   , movePool :: CS.MovePool
   }
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance J.ToJSON Punter
 instance J.FromJSON Punter

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
@@ -5,6 +6,7 @@
 module Protocol where
 
 import GHC.Generics
+import Control.DeepSeq
 import Data.Aeson
 import Data.Aeson.Types
 import qualified Data.HashMap.Lazy as HashMap
@@ -16,8 +18,8 @@ import Data.Text
 
 type Name = Text
 
-data HandshakePunter = HandshakePunter { me :: Name } deriving (Generic, Show)
-data HandshakeServer = HandshakeServer { you :: Name } deriving (Generic, Show)
+data HandshakePunter = HandshakePunter { me :: Name } deriving (Generic, Show, NFData)
+data HandshakeServer = HandshakeServer { you :: Name } deriving (Generic, Show, NFData)
 
 instance ToJSON HandshakePunter
 instance ToJSON HandshakeServer
@@ -31,7 +33,7 @@ data Setup = Setup
   , punters :: Int
   , map :: Map
   , settings :: Maybe Settings
-  } deriving (Generic, Show)
+  } deriving (Generic, Show, NFData)
 
 setupPunter :: Setup -> PunterId
 setupPunter = punter
@@ -43,7 +45,7 @@ data Ready a = ReadyOn
   { ready :: PunterId
   , state :: Maybe a
   , futures :: Maybe Futures
-  } deriving (Generic, Show)
+  } deriving (Generic, Show, NFData)
 
 readyState :: Ready a -> Maybe a
 readyState = state
@@ -61,12 +63,12 @@ instance FromJSON a => FromJSON (Ready a)
 data PrevMoves a = PrevMoves
   { move :: Moves
   , state :: Maybe a
-  } deriving (Generic, Show)
+  } deriving (Generic, Show, NFData)
 
 data MyMove a = MyMove
   { move :: Move
   , state :: Maybe a
-  } deriving (Generic, Show)
+  } deriving (Generic, Show, NFData)
 
 instance ToJSON a => ToJSON (PrevMoves a) where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
@@ -81,7 +83,7 @@ instance FromJSON a => FromJSON (MyMove a)
 
 -- Scoring
 
-data Scoring = Scoring { stop :: Stop } deriving (Generic, Show)
+data Scoring = Scoring { stop :: Stop } deriving (Generic, Show, NFData)
 
 instance ToJSON Scoring
 instance FromJSON Scoring
@@ -94,7 +96,7 @@ data Map = Map
   { sites :: [Site]
   , rivers :: [River]
   , mines :: [SiteId]
-  } deriving (Generic, Show)
+  } deriving (Generic, Show, NFData)
 
 instance ToJSON Map
 instance FromJSON Map
@@ -103,7 +105,7 @@ data Settings = Settings { futures  :: Maybe Bool
                          , splurges :: Maybe Bool
                          , options  :: Maybe Bool
                          }
-              deriving (Generic, Show)
+              deriving (Generic, Show, NFData)
 
 instance ToJSON Settings where
   toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
@@ -121,13 +123,13 @@ type Futures = [Future]
 
 data Future = Future { source :: SiteId
                      , target :: SiteId
-                     } deriving (Generic, Show)
+                     } deriving (Generic, Show, NFData)
 
 instance ToJSON Future
 instance FromJSON Future
 
-data Site = Site { id :: SiteId } deriving (Generic, Show, Eq, Ord)
-data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show, Eq, Ord)
+data Site = Site { id :: SiteId } deriving (Generic, Show, Eq, Ord, NFData)
+data River = River { source :: SiteId, target :: SiteId } deriving (Generic, Show, Eq, Ord, NFData)
 
 instance ToJSON Site
 instance ToJSON River
@@ -137,7 +139,7 @@ instance FromJSON River
 type SiteId = Int
 
 data Moves = Moves
-  { moves :: [Move] } deriving (Generic, Show)
+  { moves :: [Move] } deriving (Generic, Show, NFData)
 
 instance ToJSON Moves
 instance FromJSON Moves
@@ -160,7 +162,7 @@ data Move
     , source :: SiteId
     , target :: SiteId
     }
-  deriving (Generic, Show)
+  deriving (Generic, Show, NFData)
 
 instance ToJSON Move where
   toJSON (MvClaim punterId src tgt) = object $
@@ -209,14 +211,14 @@ instance FromJSON Move where
 
 data Stop = Stop { moves :: [Move]
                  , scores :: [Score]
-                 } deriving (Generic, Show)
+                 } deriving (Generic, Show, NFData)
 
 instance ToJSON Stop
 instance FromJSON Stop
 
 data Score = Score { punter :: PunterId
                    , score :: Int
-                   } deriving (Generic, Show)
+                   } deriving (Generic, Show, NFData)
 
 instance ToJSON Score
 instance FromJSON Score

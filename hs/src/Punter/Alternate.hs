@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Punter.Alternate where
 
+import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.Maybe
 import GHC.Generics
@@ -12,7 +14,7 @@ import qualified Protocol as P
 import Punter
 
 data Alternate p1 p2 = Alternate Bool p1 p2
-  deriving (Generic)
+  deriving (Generic, NFData)
 
 instance (J.ToJSON p1, J.ToJSON p2) => J.ToJSON (Alternate p1 p2)
 instance (J.FromJSON p1, J.FromJSON p2) => J.FromJSON (Alternate p1 p2)
