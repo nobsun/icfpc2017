@@ -115,7 +115,7 @@ main = do
     let m = Punters.withPunter name $ \(Proxy :: Proxy p) -> do
               (ready, tm) <- measureSec $ do
                 let ready = Punter.setup setupArg :: P.Ready p
-                evaluate $ rnf $ J.encode ready -- P.Ready自体はNFDataにしていないので文字列化したものを評価
+                evaluate $ rnf ready
                 return ready
               LBS8.putStrLn $
                 "  punter " <> LBS8.pack (show pid) <> ": " <>
@@ -144,19 +144,17 @@ main = do
                   { P.move  = P.Moves (reverse (notifyQueue IntMap.! pid))
                   , P.state = Just p
                   }
-            -- P.PrevMoves自体はNFDataにしていないのでとりあえず評価を強制しない
-            -- evaluate $ rnf prevMoves
+            evaluate $ rnf prevMoves
             ret <- timeout' ((10^(6::Int) *) <$> optTimeout opt) $ measureSec $ do
               myMove <- Punter.play prevMoves
-              let moveStr = J.encode (P.move (myMove :: P.MyMove p))
-              evaluate $ rnf moveStr -- P.Move自体はNFDataにしていないので文字列化したものを評価
-              return (myMove, moveStr)
+              evaluate $ rnf myMove
+              return myMove
             case ret of
-              Just ((P.MyMove{ P.state = Nothing }, _), _) -> error "no state is available"
-              Just ((P.MyMove{ P.move = m, P.state = Just p' }, moveStr), tm) -> do
+              Just (P.MyMove{ P.state = Nothing }, _) -> error "no state is available"
+              Just (P.MyMove{ P.move = m, P.state = Just p' }, tm) -> do
                 LBS8.putStrLn $
                   "  punter " <> LBS8.pack (show pid) <> ": " <>
-                  "move=" <> moveStr <> ", " <>
+                  "move=" <> J.encode m <> ", " <>
                   "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
                 return $
                   ( IntMap.insert pid (Punter.SomePunter p', m) punterInfo
@@ -165,10 +163,9 @@ main = do
                   )
               Nothing -> do
                 let m = P.MvPass pid
-                    moveStr = J.encode m
                 LBS8.putStrLn $
                   "  punter " <> LBS8.pack (show pid) <> ": " <>
-                  "move=" <> moveStr <> ", " <>
+                  "move=" <> J.encode m <> ", " <>
                   "timeout"
                 return $
                   ( IntMap.insert pid (Punter.SomePunter p, m) punterInfo
