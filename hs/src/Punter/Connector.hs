@@ -11,7 +11,6 @@ import qualified Data.IntMap.Lazy as IM
 import Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import Data.List (maximumBy)
-import Data.Maybe
 import Data.Ord
 import qualified Data.Set as Set
 import GHC.Generics
@@ -102,24 +101,7 @@ instance Punter.IsPunter Punter where
                     (equiv', score') = es HashMap.! parent
                     (s,t) = deNRiver r
                     equiv'' = UF.unify equiv' s t
-                    -- score'' = ScoreTable.computeScore tbl equiv''
-                    -- 泥臭く最適化したもの
-                    score'' = score'
-                            + sum
-                              [ tbl2 IM.! t''
-                              | s'' <- UF.classToList (UF.getClass equiv' s')
-                              , tbl2 <- maybeToList $ IM.lookup s'' tbl
-                              , t'' <- UF.classToList (UF.getClass equiv' t')
-                              ]
-                            + sum
-                              [ tbl2 IM.! s''
-                              | t'' <- UF.classToList (UF.getClass equiv' t')
-                              , tbl2 <- maybeToList $ IM.lookup t'' tbl
-                              , s'' <- UF.classToList (UF.getClass equiv' s')
-                              ]
-                      where
-                        s' = UF.getRepr equiv' s
-                        t' = UF.getRepr equiv' t
+                    score'' = score' + ScoreTable.reward tbl equiv' r
         s2 <- IntSet.toList siteReprs
         guard $ s1 /= s2
         case HashMap.lookup s2 st of

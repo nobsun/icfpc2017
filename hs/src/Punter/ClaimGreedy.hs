@@ -15,7 +15,6 @@ import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
-import qualified UnionFind as UF
 import qualified ScoreTable as ScoreTable
 
 data Punter
@@ -53,13 +52,13 @@ instance Punter.IsPunter Punter where
     if Set.null ars then
       P.MvPass punterId
     else
-      let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) scores
+      let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) rewards
       in P.MvClaim punterId s t
     where
       punterId = P.setupPunter si
       ars = CS.unclaimedRivers pool
       siteClasses = CS.reachabilityOf pool punterId
-      scores = [(r, ScoreTable.computeScore tbl (UF.unify siteClasses s t)) | r <- Set.toList ars, let (s,t) = deNRiver r]
+      rewards = [(r, ScoreTable.reward tbl siteClasses r) | r <- Set.toList ars]
 
   logger Punter{ setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
     -- scores

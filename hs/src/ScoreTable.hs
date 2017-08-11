@@ -4,16 +4,19 @@ module ScoreTable
   , Score
   , mkScoreTable
   , computeScore
+  , reward
   ) where
 
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
+import Data.Maybe
 
 import Dijkstra
 import qualified Protocol as P
 import qualified UnionFind as UF
+import NormTypes
 
 type Score = Integer
 
@@ -32,3 +35,26 @@ computeScore :: ScoreTable -> UF.Table -> Score
 computeScore table uf = sum $ do
   (mine, tbl) <- IntMap.toList table
   return $ sum [IntMap.findWithDefault 0 site tbl | site <- UF.classToList (UF.getClass uf mine)]
+
+-- NRiver を追加することによるスコアの増分
+reward :: ScoreTable -> UF.Table -> NRiver -> Score
+reward table equiv r
+  | s' == t'  = 0
+  | otherwise = 
+      sum
+        [ tbl2 IntMap.! t''
+        | s'' <- UF.classToList (UF.getClass equiv s')
+        , tbl2 <- maybeToList $ IntMap.lookup s'' table
+        , t'' <- UF.classToList (UF.getClass equiv t')
+        ]
+      +
+      sum
+        [ tbl2 IntMap.! s''
+        | t'' <- UF.classToList (UF.getClass equiv t')
+        , tbl2 <- maybeToList $ IntMap.lookup t'' table
+        , s'' <- UF.classToList (UF.getClass equiv s')
+        ]
+  where
+    (s,t) = deNRiver r
+    s' = UF.getRepr equiv s
+    t' = UF.getRepr equiv t
