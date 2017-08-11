@@ -17,6 +17,7 @@ import Options.Applicative
 import System.Clock
 import System.Exit
 import System.IO
+import System.Timeout
 import Text.Printf
 
 import qualified Protocol as P
@@ -30,6 +31,7 @@ data Options = Options
   , optFutures  :: Bool
   , optSplurges :: Bool
   , optOptions  :: Bool
+  , optTimeout  :: Maybe Int
   , optPunters  :: [String]
   } deriving (Eq, Show)
 
@@ -39,6 +41,7 @@ optionsParser = Options
   <*> futuresOption
   <*> splurgesOption
   <*> optionsOption
+  <*> timeoutOption
   <*> some punter
   where
     mapOption :: Parser String
@@ -61,6 +64,12 @@ optionsParser = Options
     optionsOption = switch
       $  long "options"
       <> help "enable options"
+
+    timeoutOption :: Parser (Maybe Int)
+    timeoutOption = optional $ option auto
+      $  long "timeout"
+      <> metavar "N"
+      <> help "time limit in each move (seconds)"
 
     punter :: Parser String
     punter = strArgument
@@ -137,22 +146,35 @@ main = do
                   }
             -- P.PrevMoves自体はNFDataにしていないのでとりあえず評価を強制しない
             -- evaluate $ rnf prevMoves
-            P.MyMove{ P.move = m, P.state = Just p' } <- do
-              ((myMove, moveStr), tm) <- measureSec $ do
-                myMove <- Punter.play prevMoves
-                let moveStr = J.encode (P.move (myMove :: P.MyMove p))
-                evaluate $ rnf moveStr -- P.Move自体はNFDataにしていないので文字列化したものを評価
-                return (myMove, moveStr)
-              LBS8.putStrLn $
-                "  punter " <> LBS8.pack (show pid) <> ": " <>
-                "move=" <> moveStr <> ", " <>
-                "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
-              return myMove
-            return $
-              ( IntMap.insert pid (Punter.SomePunter p', m) punterInfo
-              , CommonState.applyMove m state
-              , IntMap.map (m :) $ IntMap.insert pid [] $ notifyQueue
-              )
+            ret <- timeout' ((10^(6::Int) *) <$> optTimeout opt) $ measureSec $ do
+              myMove <- Punter.play prevMoves
+              let moveStr = J.encode (P.move (myMove :: P.MyMove p))
+              evaluate $ rnf moveStr -- P.Move自体はNFDataにしていないので文字列化したものを評価
+              return (myMove, moveStr)
+            case ret of
+              Just ((P.MyMove{ P.state = Nothing }, _), _) -> error "no state is available"
+              Just ((P.MyMove{ P.move = m, P.state = Just p' }, moveStr), tm) -> do
+                LBS8.putStrLn $
+                  "  punter " <> LBS8.pack (show pid) <> ": " <>
+                  "move=" <> moveStr <> ", " <>
+                  "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
+                return $
+                  ( IntMap.insert pid (Punter.SomePunter p', m) punterInfo
+                  , CommonState.applyMove m state
+                  , IntMap.map (m :) $ IntMap.insert pid [] $ notifyQueue
+                  )
+              Nothing -> do
+                let m = P.MvPass pid
+                    moveStr = J.encode m
+                LBS8.putStrLn $
+                  "  punter " <> LBS8.pack (show pid) <> ": " <>
+                  "move=" <> moveStr <> ", " <>
+                  "timeout"
+                return $
+                  ( IntMap.insert pid (Punter.SomePunter p, m) punterInfo
+                  , CommonState.applyMove m state
+                  , IntMap.map (m :) $ notifyQueue
+                  )
 
       totalSteps :: Int
       totalSteps = length (P.rivers map')
@@ -200,3 +222,6 @@ measureSec io = do
   tm2 <- getTime Monotonic
   return (a, fromIntegral (toNanoSecs (tm2 `diffTimeSpec` tm1)) / 10^(9::Int))
 
+timeout' :: Maybe Int -> IO a -> IO (Maybe a)
+timeout' Nothing m    = Just <$> m
+timeout' (Just lim) m = timeout lim m
