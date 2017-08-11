@@ -2,6 +2,8 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+import Control.DeepSeq
+import Control.Exception
 import Control.Monad
 import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy as LBS
@@ -12,8 +14,10 @@ import qualified Data.IntMap as IntMap
 import Data.Monoid
 import Data.Proxy
 import Options.Applicative
+import System.Clock
 import System.Exit
 import System.IO
+import Text.Printf
 
 import qualified Protocol as P
 import qualified Punter as Punter
@@ -88,6 +92,7 @@ main = do
       numPunters = length (optPunters opt)
       scoreTable = ScoreTable.mkScoreTable map'
 
+  putStrLn "setup"
   xs <- forM (zip [0..] (optPunters opt)) $ \(pid, name) -> do
     let setupArg =
           P.Setup
@@ -96,8 +101,15 @@ main = do
           , P.map      = map'
           , P.settings = Just settings
           }
-    let m = Punters.withPunter name $ \(Proxy :: Proxy p) -> 
-              case Punter.setup setupArg :: P.Ready p of
+    let m = Punters.withPunter name $ \(Proxy :: Proxy p) -> do
+              (ready, tm) <- measureSec $ do
+                let ready = Punter.setup setupArg :: P.Ready p
+                evaluate $ rnf $ J.encode ready -- P.Ready自体はNFDataにしていないので文字列化したものを評価
+                return ready
+              LBS8.putStrLn $
+                "  punter " <> LBS8.pack (show pid) <> ": " <>
+                "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
+              case ready of
                 P.ReadyOn{ P.state = Nothing } -> error "should not happen"
                 P.ReadyOn{ P.state = Just p, P.futures = futures } ->
                   return (pid, Punter.SomePunter p, futures)
@@ -117,13 +129,25 @@ main = do
         -> IO (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
       step (punterInfo, state) pid = do
         case punterInfo IntMap.! pid of
-          (Punter.SomePunter p, _) -> do
+          (Punter.SomePunter (p :: p), _) -> do
             let prevMoves =
                   P.PrevMoves
                   { P.move  = P.Moves [m | (_, m) <- IntMap.elems punterInfo]
                   , P.state = Just p
                   }
-            P.MyMove{ P.move = m, P.state = Just p' } <- Punter.play prevMoves
+            -- P.PrevMoves自体はNFDataにしていないのでとりあえず評価を強制しない
+            -- evaluate $ rnf prevMoves
+            P.MyMove{ P.move = m, P.state = Just p' } <- do
+              ((myMove, moveStr), tm) <- measureSec $ do
+                myMove <- Punter.play prevMoves
+                let moveStr = J.encode (P.move (myMove :: P.MyMove p))
+                evaluate $ rnf moveStr -- P.Move自体はNFDataにしていないので文字列化したものを評価
+                return (myMove, moveStr)
+              LBS8.putStrLn $
+                "  punter " <> LBS8.pack (show pid) <> ": " <>
+                "move=" <> moveStr <> ", " <>
+                "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
+              return myMove
             return $
               ( IntMap.insert pid (Punter.SomePunter p', m) punterInfo
               , CommonState.applyMove m state
@@ -171,3 +195,10 @@ main = do
   _ <- loop 0 x0
   return ()
   
+measureSec :: IO a -> IO (a, Double)
+measureSec io = do
+  tm1 <- getTime Monotonic
+  a <- io
+  tm2 <- getTime Monotonic
+  return (a, fromIntegral (toNanoSecs (tm2 `diffTimeSpec` tm1)) / 10^(9::Int))
+

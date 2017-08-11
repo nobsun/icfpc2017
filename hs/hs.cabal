@@ -118,7 +118,9 @@ executable matchpunters
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
                      , bytestring
+                     , clock
                      , containers
+                     , deepseq
                      , network
                      , text >= 1.2.2.1
                      , optparse-applicative
