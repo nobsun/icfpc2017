@@ -72,6 +72,8 @@ parserInfo = info (helper <*> optionsParser)
   $  fullDesc
   <> progDesc "Match Punters"
 
+type S = (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool, IntMap [P.Move])
+
 main :: IO ()
 main = do
   opt <- execParser parserInfo
@@ -117,22 +119,20 @@ main = do
       Nothing -> error $ "unknown punter name: " ++ name
       Just act -> act
 
-  let x0 :: (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
+  let x0 :: S
       x0 =
         ( IntMap.fromList [(pid, (p, P.MvPass pid)) | (pid, p, _) <- xs]
         , CommonState.empty numPunters map' settings
+        , IntMap.fromList [(pid,[]) | pid <- [0..numPunters-1]]
         )
 
-      step
-        :: (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
-        -> Int
-        -> IO (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
-      step (punterInfo, state) pid = do
+      step :: S -> Int -> IO S
+      step (punterInfo, state, notifyQueue) pid = do
         case punterInfo IntMap.! pid of
           (Punter.SomePunter (p :: p), _) -> do
             let prevMoves =
                   P.PrevMoves
-                  { P.move  = P.Moves [m | (_, m) <- IntMap.elems punterInfo]
+                  { P.move  = P.Moves (reverse (notifyQueue IntMap.! pid))
                   , P.state = Just p
                   }
             -- P.PrevMoves自体はNFDataにしていないのでとりあえず評価を強制しない
@@ -151,13 +151,14 @@ main = do
             return $
               ( IntMap.insert pid (Punter.SomePunter p', m) punterInfo
               , CommonState.applyMove m state
+              , IntMap.map (m :) $ IntMap.insert pid [] $ notifyQueue
               )
 
       totalSteps :: Int
       totalSteps = length (P.rivers map')
 
-      dump :: Int -> (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool) -> IO ()
-      dump n (punterInfo, state) = do
+      dump :: Int -> S -> IO ()
+      dump n (punterInfo, state, _notifyQueue) = do
         let prevMoves :: P.PrevMoves ()
             prevMoves =
               P.PrevMoves
@@ -170,10 +171,7 @@ main = do
           let m = CommonState.scoreOf state scoreTable pid
           putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show m
 
-      loop
-        :: Int
-        -> (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
-        -> IO (IntMap (Punter.SomePunter, P.Move), CommonState.MovePool)
+      loop :: Int -> S -> IO S
       loop n x
         | n + numPunters < totalSteps = do
             dump n x
@@ -181,12 +179,12 @@ main = do
             loop (n + numPunters) x'
         | otherwise = do
             dump n x
-            x' <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
+            x'@(punterInfo, state, _notifyQueue) <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
             let stop :: P.Stop
                 stop =
                   P.Stop
-                  { P.moves  = [if pid < totalSteps - n then snd (fst x' IntMap.! pid) else P.MvPass pid | pid <- [0..numPunters-1]]
-                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf (snd x') scoreTable pid) | pid <- [0..numPunters-1]]
+                  { P.moves  = [if pid < totalSteps - n then snd (punterInfo IntMap.! pid) else P.MvPass pid | pid <- [0..numPunters-1]]
+                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state scoreTable pid) | pid <- [0..numPunters-1]]
                   }
             putStrLn "stop"
             LBS8.putStrLn $ "<- " <> J.encode stop
