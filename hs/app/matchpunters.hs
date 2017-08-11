@@ -42,7 +42,7 @@ optionsParser = Options
   <*> splurgesOption
   <*> optionsOption
   <*> timeoutOption
-  <*> some punter
+  <*> punters
   where
     mapOption :: Parser String
     mapOption = strOption
@@ -71,10 +71,10 @@ optionsParser = Options
       <> metavar "N"
       <> help "time limit in each move (seconds)"
 
-    punter :: Parser String
-    punter = strArgument
-      $  help ("punter name {" ++ intercalate "|" Punters.names ++ "}")
-      <> metavar "STRING"
+    punters :: Parser [String]
+    punters = some $ strArgument
+      $  help ("punter names {" ++ intercalate "|" Punters.names ++ "}")
+      <> metavar "STRING ..."
 
 parserInfo :: ParserInfo Options
 parserInfo = info (helper <*> optionsParser)
