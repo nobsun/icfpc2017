@@ -35,6 +35,7 @@ library
                      , Punter.Connector
                      , Punter.MixedStrategy
                      , Punters
+                     , Simulator
                      , Strategy.Score
                      , Strategy.Degree
                      , Strategy.Neighbor
@@ -48,12 +49,15 @@ library
                      , fgl >= 5.5.3.1
                      , aeson >= 1.0.2.1
                      , bytestring
+                     , clock
                      , containers
+                     , data-default-class
                      , deepseq >=1.4.0.0
                      , transformers
                      , hashable
                      , heaps
                      , network
+                     , process
                      , text >= 1.2.2.1
                      , unordered-containers
   default-language:    Haskell2010
