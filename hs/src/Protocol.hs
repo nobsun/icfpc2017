@@ -231,5 +231,11 @@ data Score = Score { punter :: PunterId
 instance ToJSON Score
 instance FromJSON Score
 
+data Timeout = Timeout{ timeout :: Double }
+  deriving (Generic, Show, NFData)
+
+instance ToJSON Timeout
+instance FromJSON Timeout
+
 getMap :: FilePath -> IO (Maybe Map)
 getMap path = BSL.readFile path >>= return.decode
