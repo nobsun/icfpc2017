@@ -127,6 +127,18 @@ executable match-haskell-punters
                      , hs
   default-language:    Haskell2010
 
+executable match-offline-punters
+  hs-source-dirs:      app
+  main-is:             match-offline-punters.hs
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , aeson >= 1.0.2.1
+                     , bytestring
+                     , data-default-class
+                     , optparse-applicative
+                     , hs
+  default-language:    Haskell2010
+
 executable punter
   hs-source-dirs:      app
   main-is:             connector.hs
