@@ -79,7 +79,15 @@ instance ToJSON a => ToJSON (MyMove a) where
     where
       Object m' = toJSON m
   toJSON (MyMove m Nothing)  = toJSON m
-instance FromJSON a => FromJSON (MyMove a)
+instance FromJSON a => FromJSON (MyMove a) where
+  parseJSON = do
+    withObject "MyMove" $ \obj -> do
+      m <- parseJSON $ Object (HashMap.delete "state" obj)
+      s <-
+        case HashMap.lookup "state" obj of
+          Nothing -> return Nothing
+          Just st -> Just <$> parseJSON st
+      return $ MyMove{ move  = m, state = s }
 
 -- Scoring
 
