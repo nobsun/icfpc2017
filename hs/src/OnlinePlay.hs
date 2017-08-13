@@ -7,6 +7,7 @@ module OnlinePlay where
 import Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as B
 import Data.Char (isDigit)
+import Data.Default.Class
 import qualified Data.Aeson as J
 import Data.Maybe
 import Data.Monoid
@@ -21,18 +22,34 @@ import Punter
 import qualified Punter.Pass as PassPunter
 
 test :: String -> IO ()
-test port = runPunterOnline (Proxy :: Proxy PassPunter.Punter) port
+test port = runPunterOnline def{ optServiceName = port } (Proxy :: Proxy PassPunter.Punter)
 
-runPunterOnline :: Punter.IsPunter a => Proxy a -> N.ServiceName -> IO ()
-runPunterOnline punter port = do
+data Options
+  = Options
+  { optName        :: String
+  , optHostName    :: String
+  , optServiceName :: String
+  }
+  deriving (Show, Eq)
+
+instance Default Options where
+  def =
+    Options
+    { optName        = "sampou-online"
+    , optHostName    = "punter.inf.ed.ac.uk"
+    , optServiceName = ""
+    }
+
+runPunterOnline :: Punter.IsPunter a => Options -> Proxy a -> IO ()
+runPunterOnline opt punter = do
   N.withSocketsDo $ do
-    addrinfos <- N.getAddrInfo Nothing (Just "punter.inf.ed.ac.uk") (Just port)
+    addrinfos <- N.getAddrInfo Nothing (Just (optHostName opt)) (Just (optServiceName opt))
     let addr = head addrinfos
     sock <- N.socket (N.addrFamily addr) N.Stream N.defaultProtocol
     N.connect sock (N.addrAddress addr)
     bracket (N.socketToHandle sock ReadWriteMode) hClose $ \h -> do
       hSetBuffering h NoBuffering
-      runPunterOnline' "sampou" punter h
+      runPunterOnline' (T.pack (optName opt)) punter h
 
 runPunterOnline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> Handle -> IO ()
 runPunterOnline' name _ h = do

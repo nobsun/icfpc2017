@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wall #-}
 module Main where
 
+import Data.Default.Class
 import Data.Proxy
 import OfflinePlay
 import Punter.Any
@@ -8,4 +9,4 @@ import Punter.Any
 -- import System.Environment
 
 main :: IO ()
-main = runPunterOffline (Proxy :: Proxy Punter)
+main = runPunterOffline def (Proxy :: Proxy Punter)

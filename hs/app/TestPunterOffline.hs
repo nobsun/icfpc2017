@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
+import Data.Default.Class
 import Data.List (intercalate)
 import OfflinePlay
 import qualified Punters as Punters
@@ -17,6 +18,6 @@ main = do
     []      ->  usage *> error "punter algorithm name is required"
     name:_  ->  return name
 
-  case Punters.withPunter name runPunterOffline of
+  case Punters.withPunter name (runPunterOffline def) of
     Just act -> act
     Nothing -> usage *> error "unknown punter algorithm"

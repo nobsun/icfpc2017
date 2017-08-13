@@ -1,14 +1,17 @@
 {-# OPTIONS_GHC -Wall #-}
+import Data.Default.Class
 import Data.List (intercalate)
+import Data.Maybe
 import Data.Monoid
 import Options.Applicative
-import OfflinePlay (runPunterOffline)
-import OnlinePlay (runPunterOnline)
+import qualified OfflinePlay
+import qualified OnlinePlay
 import qualified Punters as Punters
 
 data Options = Options
   { optPunterName :: String
-  , _optHandShakeName :: Maybe String
+  , optHandshakeName :: Maybe String
+  , optHost :: Maybe String
   , optPort :: Maybe String
   } deriving (Eq, Show)
 
@@ -16,6 +19,7 @@ optionsParser :: Parser Options
 optionsParser = Options
   <$> punterOption
   <*> nameOption
+  <*> hostOption
   <*> portOption
   where
     punterOption :: Parser String
@@ -30,6 +34,12 @@ optionsParser = Options
       $  long "name"
       <> metavar "STRING"
       <> help ("name for handshake")
+
+    hostOption :: Parser (Maybe String)
+    hostOption = optional $ strOption
+      $  long "host"
+      <> metavar "STRING"
+      <> help ("hostname (default: " ++ OnlinePlay.optHostName def ++ ")")
 
     portOption :: Parser (Maybe String)
     portOption = optional $ strOption
@@ -47,8 +57,20 @@ main = do
   opt <- execParser parserInfo
   let m = Punters.withPunter (optPunterName opt) $ \punter -> do
          case optPort opt of
-           Just s -> runPunterOnline punter s
-           Nothing -> runPunterOffline punter
+           Just s -> do
+             let opt2 =
+                   def
+                   { OnlinePlay.optName        = fromMaybe (OnlinePlay.optName def) (optHandshakeName opt)
+                   , OnlinePlay.optHostName    = fromMaybe (OnlinePlay.optHostName def) (optHost opt)
+                   , OnlinePlay.optServiceName = s
+                   }
+             OnlinePlay.runPunterOnline opt2 punter
+           Nothing -> do
+             let opt2 =
+                   def
+                   { OfflinePlay.optName = fromMaybe (OfflinePlay.optName def) (optHandshakeName opt)
+                   }
+             OfflinePlay.runPunterOffline opt2 punter
   case m of
     Just act -> act
     Nothing -> error "unknown punter algorithm"

@@ -10,6 +10,7 @@ import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Char (isDigit)
 import Data.Aeson (Result (Success, Error))
 import qualified Data.Aeson as J
+import Data.Default.Class
 import Data.Monoid
 import Data.Proxy
 import qualified Data.Text as T
@@ -22,13 +23,25 @@ import Punter
 import qualified Punter.Pass as PassPunter
 
 test :: IO ()
-test = runPunterOffline (Proxy :: Proxy PassPunter.Punter)
+test = runPunterOffline def (Proxy :: Proxy PassPunter.Punter)
 
-runPunterOffline :: Punter.IsPunter a => Proxy a -> IO ()
-runPunterOffline punter = do
+data Options
+  = Options
+  { optName        :: String
+  }
+  deriving (Show, Eq)
+
+instance Default Options where
+  def =
+    Options
+    { optName        = "sampou-offline"
+    }
+
+runPunterOffline :: Punter.IsPunter a => Options -> Proxy a -> IO ()
+runPunterOffline opt punter = do
       hSetBuffering stdin (BlockBuffering Nothing)
       hSetBuffering stdout (BlockBuffering Nothing)
-      runPunterOffline' "sampou-offline" punter
+      runPunterOffline' (T.pack (optName opt)) punter
 
 runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
 runPunterOffline' name _ =
