@@ -141,7 +141,7 @@ simulate opt map' settings punters' = do
             loop (n + numPunters) x'
         | otherwise = do
             dump n x
-            x'@(state, prev) <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
+            (state, prev) <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
             let stopMsg :: P.Stop
                 stopMsg =
                   P.Stop
@@ -150,9 +150,27 @@ simulate opt map' settings punters' = do
                   }
             putStrLn "stop"
             LBS8.putStrLn $ "<- " <> J.encode stopMsg
-            return x'
+            return
+              ( state
+              , prev `IntMap.union` IntMap.fromList [(pid, P.MvPass pid) | pid <- [0..numPunters-1], pid >= totalSteps - n]
+              )
 
-  _ <- loop 0 x0
+  (state, prev) <- loop 0 x0
+
+  let scores = IntMap.fromList [(pid, CommonState.scoreOf state scoreTable pid) | pid <- [0..numPunters-1]]
+
+      stopMsg :: P.Stop
+      stopMsg =
+        P.Stop
+        { P.moves  = (IntMap.elems prev)
+        , P.scores = [P.Score pid (fromIntegral s) | (pid,s) <- IntMap.toList scores]
+        }
+  putStrLn "stop"
+  LBS8.putStrLn $ "<- " <> J.encode stopMsg
+
+  forM_ [0..numPunters-1] $ \pid -> do
+    stop (punters IntMap.! pid) scores
+
   return ()
   
 measureSec :: IO a -> IO (a, Double)
@@ -219,7 +237,7 @@ class IsPunterAdapter p where
 
   stop
     :: p
-    -> P.Scoring
+    -> IntMap ScoreTable.Score
     -> IO ()
 
 -- ------------------------------------------------------------------------
@@ -285,7 +303,7 @@ instance Punter.IsPunter p => IsPunterAdapter (HaskellPunter p) where
         writeIORef (hpMoveQueue p) []
         return $ Just (m, tm)
 
-  stop _p _scoring = return ()
+  stop _p _scores = return ()
 
 -- ------------------------------------------------------------------------
 
@@ -353,7 +371,7 @@ instance IsPunterAdapter OfflinePunter where
         writeIORef (offMoveQueue p) []
         return $ Just (m, tm)
 
-  stop _p _scoring = return ()
+  stop _p _scores = return ()
 
 
 -- ------------------------------------------------------------------------
@@ -412,7 +430,15 @@ instance IsPunterAdapter OnlinePunter where
         writeIORef (onMoveQueue p) []
         return $ Just (m, tm)
 
-  stop p _scoring = do
+  stop p scores = do
+    moves <- readIORef (onMoveQueue p)
+    let stopMsg :: P.Stop
+        stopMsg =
+          P.Stop
+          { P.moves  = reverse moves
+          , P.scores = [P.Score pid (fromIntegral s) | (pid, s) <- IntMap.toList scores]
+          }
+    send (onHandle p) P.Scoring{ P.stop = stopMsg }
     hClose (onHandle p)
 
 -- ------------------------------------------------------------------------
