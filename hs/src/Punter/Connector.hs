@@ -60,7 +60,7 @@ instance Punter.IsPunter Punter where
     | not (null candidates) =
         let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) candidates
         in P.MvClaim punterId s t
-    | not (Set.null ars) =
+    | not (Set.null ars) && P.punters si > 1 =
         let -- 自分以外で最もスコアの高いプレイヤーにとってのスコア最大の川を取得する（＝邪魔をする）
             punter' = fst $ maximumBy (comparing snd) [(punter'', c) | (punter'', c) <- IM.toList (CS.scores pool tbl), punter'' /= punterId]
             equiv'  = CS.reachabilityOf pool punter'
