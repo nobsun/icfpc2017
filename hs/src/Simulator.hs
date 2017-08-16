@@ -42,6 +42,7 @@ import Data.Monoid
 import qualified Data.Text as T
 import System.Clock
 import System.IO
+import System.IO.Error
 import System.Process
 import System.Timeout
 import Text.Printf
@@ -92,9 +93,9 @@ simulate opt map' settings punters' = do
 
       step :: S -> Int -> IO S
       step (state, prev) pid = do
-        ret <- play (punters IntMap.! pid) (optPlayTimeout opt)
+        ret <- tryIOError $ play (punters IntMap.! pid) (optPlayTimeout opt)
         case ret of
-          Just (m, tm) -> do
+          Right (Just (m, tm)) -> do
             forM_ (IntMap.elems punters) $ \p -> addMove p m
             LBS8.putStrLn $
               "  punter " <> LBS8.pack (show pid) <> ": " <>
@@ -104,13 +105,24 @@ simulate opt map' settings punters' = do
               ( CommonState.applyMove m state
               , IntMap.insert pid m prev
               )
-          Nothing -> do
+          Right Nothing -> do
             let m = P.MvPass pid
             forM_ (IntMap.elems punters) $ \p -> addMove p m
             LBS8.putStrLn $
               "  punter " <> LBS8.pack (show pid) <> ": " <>
               "move=" <> J.encode m <> ", " <>
               "timeout"
+            return $
+              ( CommonState.applyMove m state
+              , IntMap.insert pid m prev
+              )
+          Left err -> do
+            let m = P.MvPass pid
+            forM_ (IntMap.elems punters) $ \p -> addMove p m
+            LBS8.putStrLn $
+              "  punter " <> LBS8.pack (show pid) <> ": " <>
+              "move=" <> J.encode m <> ", " <>
+              "error=" <> LBS8.pack (show err)
             return $
               ( CommonState.applyMove m state
               , IntMap.insert pid m prev
