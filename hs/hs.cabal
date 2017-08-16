@@ -62,33 +62,6 @@ library
                      , unordered-containers
   default-language:    Haskell2010
 
-executable TestPunterOnline
-  hs-source-dirs:      app
-  main-is:             TestPunterOnline.hs
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , fgl >= 5.5.3.1
-                     , aeson >= 1.0.2.1
-                     , bytestring
-                     , data-default-class
-                     , network
-                     , text >= 1.2.2.1
-                     , hs
-  default-language:    Haskell2010
-
-executable TestPunterOffline
-  hs-source-dirs:      app
-  main-is:             TestPunterOffline.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , fgl >= 5.5.3.1
-                     , aeson >= 1.0.2.1
-                     , bytestring
-                     , data-default-class
-                     , text >= 1.2.2.1
-                     , hs
-  default-language:    Haskell2010
-
 executable runpunter
   hs-source-dirs:      app
   main-is:             runpunter.hs
