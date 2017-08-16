@@ -24,14 +24,14 @@ echo punter="$punter"
 
 mkdir -p run
 
-if [ ! -x ./run/TestPunterOffline ]; then
+if [ ! -x ./run/runpunter ]; then
     for exe in \
-        ./dist/build/TestPunterOffline/TestPunterOffline \
-        ./.stack-work/install/x86_64-linux/lts-8.23/8.0.2/bin/TestPunterOffline \
+        ./dist/build/runpunter/runpunter \
+        ./.stack-work/install/x86_64-linux/lts-8.23/8.0.2/bin/runpunter \
         ; do
         if [ -x $exe ]; then
-            cp -a $exe ./run/TestPunterOffline.$$
-            mv ./run/TestPunterOffline.$$ ./run/TestPunterOffline
+            cp -a $exe ./run/runpunter.$$
+            mv ./run/runpunter.$$ ./run/runpunter
             break
         fi
     done
@@ -42,7 +42,7 @@ gen_punter() {
         cat <<EOF > ./run/${punter}.sh
 #! /bin/sh
 
-./TestPunterOffline $punter
+./runpunter -p $punter
 EOF
         chmod a+x ./run/${punter}.sh
     fi
