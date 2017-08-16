@@ -402,7 +402,7 @@ instance IsPunterAdapter OnlinePunter where
   -- TODO: timeoutを無視してる
   setup p setupArg _timelim = do
     send (onHandle p) $ setupArg
-    (P.ReadyOn{ P.ready = pid, P.futures = futures } :: P.Ready ()) <- recv (onHandle p)
+    (P.ReadyOn{ P.ready = pid, P.futures = futures } :: P.Ready J.Value) <- recv (onHandle p)
     writeIORef (onPunterId p) pid
     return $ fromMaybe [] futures
 
@@ -419,7 +419,7 @@ instance IsPunterAdapter OnlinePunter where
     evaluate $ rnf prevMoves
     ret <- softTimeout (fmap (round . (10^(6::Int) *)) timelim) $ measureSec $ do
       send (onHandle p) prevMoves
-      (myMove :: P.MyMove ()) <- recv (onHandle p)
+      (myMove :: P.MyMove J.Value) <- recv (onHandle p)
       evaluate $ rnf myMove
       return myMove
     case ret of
