@@ -22,12 +22,12 @@ import Punter
 import NormTypes
 import Dijkstra
 import qualified UnionFind as UF
-import qualified ScoreTable as ScoreTable
+import qualified DistanceTable as DistanceTable
 
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , scoreTable :: ScoreTable.ScoreTable
+  , distTable :: DistanceTable.DistanceTable
   , movePool :: CS.MovePool
   , targets :: [(P.SiteId, P.SiteId)]
   }
@@ -43,15 +43,15 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , scoreTable = sc
+        , distTable = ds
         , movePool = CS.empty (P.punters s) m (P.settings' s)
-        , targets = map fst $ sortBy (flip (comparing snd)) [((mine,site),w) | (mine,sites) <- IntMap.toList sc, (site,w) <- IntMap.toList sites]
+        , targets = map fst $ sortBy (flip (comparing snd)) [((mine,site),d^(2::Int)) | (mine,sites) <- IntMap.toList ds, (site,d) <- IntMap.toList sites]
         }
     , P.futures = Nothing
     }
     where
       m = P.map s
-      sc = ScoreTable.mkScoreTable m
+      ds = DistanceTable.mkDistanceTable m
 
   applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1

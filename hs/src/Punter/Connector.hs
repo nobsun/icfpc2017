@@ -23,12 +23,12 @@ import qualified Protocol as P
 import Punter
 import NormTypes
 import qualified UnionFind as UF
-import qualified ScoreTable as ScoreTable
+import qualified DistanceTable as DistanceTable
 
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , scoreTable :: ScoreTable.ScoreTable
+  , distTable :: DistanceTable.DistanceTable
   , movePool :: CS.MovePool
   }
   deriving (Generic, NFData)
@@ -43,7 +43,7 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , scoreTable = ScoreTable.mkScoreTable m
+        , distTable = DistanceTable.mkDistanceTable m
         , movePool = CS.empty (P.punters s) m (P.settings' s)
         }
     , P.futures = Nothing
@@ -56,7 +56,7 @@ instance Punter.IsPunter Punter where
     { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, scoreTable = tbl, movePool = pool }
+  chooseMoveSimple Punter{ setupInfo = si, distTable = tbl, movePool = pool }
     | not (null candidates) =
         let (s,t) = deNRiver $ fst $ maximumBy (comparing snd) candidates
         in P.MvClaim punterId s t
@@ -64,7 +64,7 @@ instance Punter.IsPunter Punter where
         let -- 自分以外で最もスコアの高いプレイヤーにとってのスコア最大の川を取得する（＝邪魔をする）
             punter' = fst $ maximumBy (comparing snd) [(punter'', c) | (punter'', c) <- IM.toList (CS.scores pool tbl), punter'' /= punterId]
             equiv'  = CS.reachabilityOf pool punter'
-            (s,t)   = fst $ maximumBy (comparing snd) [((s',t'), ScoreTable.computeScore tbl (UF.unify equiv' s' t')) | r <- Set.toList ars, let (s',t') = deNRiver r]
+            (s,t)   = fst $ maximumBy (comparing snd) [((s',t'), DistanceTable.computeScore tbl (UF.unify equiv' s' t')) | r <- Set.toList ars, let (s',t') = deNRiver r]
         in P.MvClaim punterId s t
     | otherwise = P.MvPass punterId
     where
@@ -92,7 +92,7 @@ instance Punter.IsPunter Punter where
             * スコア
             を計算。
             -}
-            es :: HashMap P.SiteId (UF.Table, ScoreTable.Score)
+            es :: HashMap P.SiteId (UF.Table, DistanceTable.Score)
             es = fmap f st
               where
                 f (_, Nothing) = (equiv, currScore)
@@ -103,7 +103,7 @@ instance Punter.IsPunter Punter where
                     (equiv', score') = es HashMap.! parent
                     (s,t) = deNRiver r
                     equiv'' = UF.unify equiv' s t
-                    score'' = score' + ScoreTable.reward tbl equiv' r
+                    score'' = score' + DistanceTable.reward tbl equiv' r
         s2 <- IntSet.toList siteReprs
         guard $ s1 /= s2
         case HashMap.lookup s2 st of
@@ -128,7 +128,6 @@ instance Punter.IsPunter Punter where
               Just (_, Just (s', r)) -> r : loop s'
               Nothing -> undefined
 
-  logger Punter{ setupInfo = P.Setup { punter = myid}, scoreTable = tbl, movePool = pool } = do
-    -- scores
+  logger Punter{ setupInfo = P.Setup { punter = myid}, distTable = tbl, movePool = pool } = do
     forM_ (IM.toList $ CS.scores pool tbl) $ \(pid, s) -> do
       writeLog $ (bool "  "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s

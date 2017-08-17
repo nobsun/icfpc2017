@@ -27,7 +27,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Protocol as P
 import qualified UnionFind as UF
-import qualified ScoreTable as ScoreTable
+import qualified DistanceTable as DistanceTable
 import NormTypes
 
 
@@ -133,8 +133,8 @@ riversOf MovePool{ pool = pl } pid = fst $ IM.findWithDefault emptyEntry pid pl
 reachabilityOf :: MovePool -> P.PunterId -> UF.Table
 reachabilityOf MovePool{ pool = pl } pid = snd $ IM.findWithDefault emptyEntry pid pl
 
-scoreOf :: MovePool -> ScoreTable.ScoreTable -> P.PunterId -> ScoreTable.Score
-scoreOf MovePool{ pool = pl } tbl pid = ScoreTable.computeScore tbl (snd (IM.findWithDefault emptyEntry pid pl))
+scoreOf :: MovePool -> DistanceTable.DistanceTable -> P.PunterId -> DistanceTable.Score
+scoreOf MovePool{ pool = pl } tbl pid = DistanceTable.computeScore tbl (snd (IM.findWithDefault emptyEntry pid pl))
 
-scores :: MovePool -> ScoreTable.ScoreTable -> IM.IntMap ScoreTable.Score
-scores MovePool{ pool = pl } tbl = fmap (ScoreTable.computeScore tbl . snd) pl
+scores :: MovePool -> DistanceTable.DistanceTable -> IM.IntMap DistanceTable.Score
+scores MovePool{ pool = pl } tbl = fmap (DistanceTable.computeScore tbl . snd) pl

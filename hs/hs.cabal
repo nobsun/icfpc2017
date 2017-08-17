@@ -41,7 +41,6 @@ library
                      , Strategy.Neighbor
                      , Dijkstra
                      , UnionFind
-                     , ScoreTable
                      , DistanceTable
 --                     , GraphUtils
   ghc-options:         -Wall

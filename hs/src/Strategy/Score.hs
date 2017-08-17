@@ -16,8 +16,8 @@ import qualified Data.Heap as Heap
 
 import NormTypes (NRiver, deNRiver)
 import qualified UnionFind as UF
-import ScoreTable (ScoreTable, Score)
-import qualified ScoreTable as ScoreTable
+import DistanceTable (DistanceTable, Score)
+import qualified DistanceTable as DistanceTable
 
 
 newtype ScoreOrd = ScoreOrd { unScoreOrd :: (NRiver, Score) }
@@ -28,27 +28,27 @@ instance Eq ScoreOrd where
 instance Ord ScoreOrd where
   ScoreOrd x `compare` ScoreOrd y  =  snd x `compare` snd y
 
-greedyDiffs :: ScoreTable            -- ^ mine 毎の、site 毎の score のマップ
+greedyDiffs :: DistanceTable         -- ^ mine 毎の、site 毎の 距離のマップ
             -> UF.Table              -- ^ 到達可能 site 集合用 query table
             -> Set NRiver            -- ^ 絞り込み対象候補手の集合
             -> [([NRiver], Integer)] -- ^ スコア上昇値順 候補手グループ
-greedyDiffs scoreTbl classes ars =
-    map (second (subtract curScore)) $ greedyScores scoreTbl classes ars
+greedyDiffs distTbl classes ars =
+    map (second (subtract curScore)) $ greedyScores distTbl classes ars
   where
-    curScore = ScoreTable.computeScore scoreTbl classes
+    curScore = DistanceTable.computeScore distTbl classes
 
-greedyScores :: ScoreTable          -- ^ mine 毎の、site 毎の score のマップ
+greedyScores :: DistanceTable       -- ^ mine 毎の、site 毎の 距離のマップ
              -> UF.Table            -- ^ 到達可能 site 集合用 query table
              -> Set NRiver          -- ^ 絞り込み対象候補手の集合
              -> [([NRiver], Score)] -- ^ スコア上位順 候補手グループ
-greedyScores scoreTbl classes ars =
+greedyScores distTbl classes ars =
     foldr aggregate [] .     -- [[(NRiver, Score)]] -> [([NRiver], Score)]
     map (map unScoreOrd) .
     group .
     map unDown .
     unfoldr Heap.viewMin $   -- Heap (Down ScoreOrd) -> [Down ScoreOrd]
     Heap.fromList
-    [ Down $ ScoreOrd (r, ScoreTable.computeScore scoreTbl $ UF.unify classes s t)
+    [ Down $ ScoreOrd (r, DistanceTable.computeScore distTbl $ UF.unify classes s t)
     | r <- Set.toList ars, let (s,t) = deNRiver r]
   where
     unDown (Down x) = x

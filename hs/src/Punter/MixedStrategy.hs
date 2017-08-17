@@ -14,7 +14,6 @@ import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
-import ScoreTable (ScoreTable, mkScoreTable)
 import DistanceTable (DistanceTable, mkDistanceTable)
 import Strategy.Score (greedyDiffs)
 import Strategy.Degree (higherDegrees)
@@ -24,7 +23,6 @@ import Strategy.Neighbor (neighborRivers)
 data Punter
   = Punter
   { setupInfo :: P.Setup
-  , scoreTable :: ScoreTable
   , distanceTable :: DistanceTable
   , movePool :: CS.MovePool
   }
@@ -41,7 +39,6 @@ instance Punter.IsPunter Punter where
     , P.state   = Just $
         Punter
         { setupInfo = s
-        , scoreTable = mkScoreTable m
         , distanceTable = mkDistanceTable m
         , movePool = CS.empty (P.punters s) m (P.settings' s)
         }
@@ -55,8 +52,8 @@ instance Punter.IsPunter Punter where
     { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, scoreTable = scoreTbl, distanceTable = distTbl, movePool = pool } =
-      case greedyDiffs scoreTbl siteClasses ars of
+  chooseMoveSimple Punter{ setupInfo = si, distanceTable = distTbl, movePool = pool } =
+      case greedyDiffs distTbl siteClasses ars of
         []                           ->  P.MvPass punterId
         (crs1, _score):_  ->  case neighborRivers distTbl siteClasses $ Set.fromList crs1 of
           []                         ->  maybe (P.MvPass punterId) claimNR $ listToMaybe crs1  -- should not be happen

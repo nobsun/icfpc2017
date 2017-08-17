@@ -50,7 +50,7 @@ import Text.Printf
 import qualified Protocol as P
 import qualified Punter as Punter
 import qualified CommonState as CommonState
-import qualified ScoreTable as ScoreTable
+import qualified DistanceTable as DistanceTable
 
 type S = (CommonState.MovePool, IntMap P.Move)
 
@@ -71,7 +71,7 @@ simulate :: IsPunterAdapter p => Options -> P.Map -> P.Settings -> [p] -> IO ()
 simulate opt map' settings punters' = do
   let punters = IntMap.fromList (zip [0..] punters')
       numPunters = IntMap.size punters
-      scoreTable = ScoreTable.mkScoreTable map'
+      distTable = DistanceTable.mkDistanceTable map'
 
   putStrLn "setup"
   forM_ (IntMap.toList punters) $ \(pid, punter) -> do
@@ -142,7 +142,7 @@ simulate opt map' settings punters' = do
         putStrLn $ "turn " ++ show n
         LBS8.putStrLn $ "<- " <> J.encode prevMoves
         forM_ [0..numPunters-1] $ \pid -> do
-          let m = CommonState.scoreOf state scoreTable pid
+          let m = CommonState.scoreOf state distTable pid
           putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show m
 
       loop :: Int -> S -> IO S
@@ -158,7 +158,7 @@ simulate opt map' settings punters' = do
                 stopMsg =
                   P.Stop
                   { P.moves  = [if pid < totalSteps - n then prev IntMap.! pid else P.MvPass pid | pid <- [0..numPunters-1]]
-                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state scoreTable pid) | pid <- [0..numPunters-1]]
+                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state distTable pid) | pid <- [0..numPunters-1]]
                   }
             putStrLn "stop"
             LBS8.putStrLn $ "<- " <> J.encode stopMsg
@@ -169,7 +169,7 @@ simulate opt map' settings punters' = do
 
   (state, prev) <- loop 0 x0
 
-  let scores = IntMap.fromList [(pid, CommonState.scoreOf state scoreTable pid) | pid <- [0..numPunters-1]]
+  let scores = IntMap.fromList [(pid, CommonState.scoreOf state distTable pid) | pid <- [0..numPunters-1]]
 
       stopMsg :: P.Stop
       stopMsg =
@@ -249,7 +249,7 @@ class IsPunterAdapter p where
 
   stop
     :: p
-    -> IntMap ScoreTable.Score
+    -> IntMap DistanceTable.Score
     -> IO ()
 
 -- ------------------------------------------------------------------------
