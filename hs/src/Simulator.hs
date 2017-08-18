@@ -74,7 +74,7 @@ simulate opt map' settings punters' = do
       distTable = DistanceTable.mkDistanceTable map'
 
   putStrLn "setup"
-  forM_ (IntMap.toList punters) $ \(pid, punter) -> do
+  (futures :: IntMap DistanceTable.Futures) <- liftM IntMap.fromList $ forM (IntMap.toList punters) $ \(pid, punter) -> do
     let setupArg =
           P.Setup
           { P.punter   = pid
@@ -82,8 +82,8 @@ simulate opt map' settings punters' = do
           , P.map      = map'
           , P.settings = Just settings
           }
-    _futures <- setup punter setupArg (optSetupTimeout opt)
-    return ()
+    futures <- setup punter setupArg (optSetupTimeout opt)
+    return (pid, IntMap.fromList [(mine, site) | P.Future mine site <- futures])
 
   let x0 :: S
       x0 =
@@ -142,7 +142,7 @@ simulate opt map' settings punters' = do
         putStrLn $ "turn " ++ show n
         LBS8.putStrLn $ "<- " <> J.encode prevMoves
         forM_ [0..numPunters-1] $ \pid -> do
-          let m = CommonState.scoreOf state distTable pid
+          let m = CommonState.scoreOf state distTable futures pid
           putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show m
 
       loop :: Int -> S -> IO S
@@ -158,7 +158,7 @@ simulate opt map' settings punters' = do
                 stopMsg =
                   P.Stop
                   { P.moves  = [if pid < totalSteps - n then prev IntMap.! pid else P.MvPass pid | pid <- [0..numPunters-1]]
-                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state distTable pid) | pid <- [0..numPunters-1]]
+                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state distTable futures pid) | pid <- [0..numPunters-1]]
                   }
             putStrLn "stop"
             LBS8.putStrLn $ "<- " <> J.encode stopMsg
@@ -169,7 +169,7 @@ simulate opt map' settings punters' = do
 
   (state, prev) <- loop 0 x0
 
-  let scores = IntMap.fromList [(pid, CommonState.scoreOf state distTable pid) | pid <- [0..numPunters-1]]
+  let scores = IntMap.fromList [(pid, CommonState.scoreOf state distTable futures pid) | pid <- [0..numPunters-1]]
 
       stopMsg :: P.Stop
       stopMsg =

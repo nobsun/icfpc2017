@@ -5,6 +5,7 @@ module DistanceTable
   , mineDistances
 
   , Score
+  , Futures
   , computeScore
   , reward
   ) where
@@ -48,28 +49,44 @@ mineDistances table uf sss = do
 
 type Score = Integer
 
-computeScore :: DistanceTable -> UF.Table -> Score
-computeScore table uf = sum $ do
+type Futures = IntMap P.SiteId
+
+computeScore :: DistanceTable -> Futures -> UF.Table -> Score
+computeScore table futures uf = sum $ do
   (mine, tbl) <- IntMap.toList table
-  return $ sum [fromIntegral (IntMap.findWithDefault 0 site tbl) ^ (2::Int) | site <- UF.classToList (UF.getClass uf mine)]
+  let score =
+        sum
+        [ d ^ (2::Int)
+        | site <- UF.classToList (UF.getClass uf mine)
+        , let d = fromIntegral (IntMap.findWithDefault 0 site tbl)
+        ]
+      fscore =
+        case IntMap.lookup mine futures of
+          Nothing -> 0
+          Just site ->
+            (if UF.areSameClass uf mine site then id else negate)
+            (fromIntegral (tbl IntMap.! site) ^ (3::Int))
+  return $ score + fscore
 
 -- NRiver を追加することによるスコアの増分
-reward :: DistanceTable -> UF.Table -> NRiver -> Score
-reward table equiv r
+reward :: DistanceTable -> Futures -> UF.Table -> NRiver -> Score
+reward table futures equiv r
   | s' == t'  = 0
-  | otherwise = 
+  | otherwise =
       sum
-        [ fromIntegral (tbl2 IntMap.! t'') ^ (2::Int)
+        [ d ^ (2::Int) + (if IntMap.lookup s'' futures == Just t'' then 2 * d ^ (3::Int) else 0)
         | s'' <- UF.classToList (UF.getClass equiv s')
         , tbl2 <- maybeToList $ IntMap.lookup s'' table
         , t'' <- UF.classToList (UF.getClass equiv t')
+        , let d = fromIntegral (tbl2 IntMap.! t'')
         ]
       +
       sum
-        [ fromIntegral (tbl2 IntMap.! s'') ^ (2::Int)
+        [ d ^ (2::Int) + (if IntMap.lookup s'' futures == Just t'' then 2 * d ^ (3::Int) else 0)
         | t'' <- UF.classToList (UF.getClass equiv t')
         , tbl2 <- maybeToList $ IntMap.lookup t'' table
         , s'' <- UF.classToList (UF.getClass equiv s')
+        , let d = fromIntegral (tbl2 IntMap.! s'')
         ]
   where
     (s,t) = deNRiver r

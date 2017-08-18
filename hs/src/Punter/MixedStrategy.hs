@@ -8,13 +8,14 @@ import Control.DeepSeq
 import qualified Data.Aeson as J
 import Data.Maybe
 import qualified Data.Set as Set
+import qualified Data.IntMap.Lazy as IntMap
 import GHC.Generics
 
 import qualified CommonState as CS
 import qualified Protocol as P
 import Punter
 import NormTypes
-import DistanceTable (DistanceTable, mkDistanceTable)
+import DistanceTable (DistanceTable, mkDistanceTable, Futures)
 import Strategy.Score (greedyDiffs)
 import Strategy.Degree (higherDegrees)
 import Strategy.Neighbor (neighborRivers)
@@ -24,6 +25,7 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , distanceTable :: DistanceTable
+  , futuresTable :: DistanceTable.Futures
   , movePool :: CS.MovePool
   }
   deriving (Generic, NFData)
@@ -40,20 +42,25 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , distanceTable = mkDistanceTable m
+        , futuresTable = futures
         , movePool = CS.empty (P.punters s) m (P.settings' s)
         }
-    , P.futures = Nothing
+    , P.futures =
+        if IntMap.null futures
+        then Nothing
+        else Just [P.Future mine site | (mine,site) <- IntMap.toList futures]
     }
     where
       m = P.map s
+      futures = IntMap.empty
 
   applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
     { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, distanceTable = distTbl, movePool = pool } =
-      case greedyDiffs distTbl siteClasses ars of
+  chooseMoveSimple Punter{ setupInfo = si, distanceTable = distTbl, futuresTable = futures, movePool = pool } =
+      case greedyDiffs distTbl futures siteClasses ars of
         []                           ->  P.MvPass punterId
         (crs1, _score):_  ->  case neighborRivers distTbl siteClasses $ Set.fromList crs1 of
           []                         ->  maybe (P.MvPass punterId) claimNR $ listToMaybe crs1  -- should not be happen

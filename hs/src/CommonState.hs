@@ -133,8 +133,8 @@ riversOf MovePool{ pool = pl } pid = fst $ IM.findWithDefault emptyEntry pid pl
 reachabilityOf :: MovePool -> P.PunterId -> UF.Table
 reachabilityOf MovePool{ pool = pl } pid = snd $ IM.findWithDefault emptyEntry pid pl
 
-scoreOf :: MovePool -> DistanceTable.DistanceTable -> P.PunterId -> DistanceTable.Score
-scoreOf MovePool{ pool = pl } tbl pid = DistanceTable.computeScore tbl (snd (IM.findWithDefault emptyEntry pid pl))
+scoreOf :: MovePool -> DistanceTable.DistanceTable -> IM.IntMap DistanceTable.Futures -> P.PunterId -> DistanceTable.Score
+scoreOf MovePool{ pool = pl } tbl futures pid = DistanceTable.computeScore tbl (IM.findWithDefault IM.empty pid futures) (snd (IM.findWithDefault emptyEntry pid pl))
 
-scores :: MovePool -> DistanceTable.DistanceTable -> IM.IntMap DistanceTable.Score
-scores MovePool{ pool = pl } tbl = fmap (DistanceTable.computeScore tbl . snd) pl
+scores :: MovePool -> DistanceTable.DistanceTable -> IM.IntMap DistanceTable.Futures -> IM.IntMap DistanceTable.Score
+scores MovePool{ pool = pl } tbl futures = IM.mapWithKey (\pid (_, equiv) -> DistanceTable.computeScore tbl (IM.findWithDefault IM.empty pid futures) equiv) pl

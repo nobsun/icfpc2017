@@ -23,6 +23,7 @@ data Punter
   = Punter
   { setupInfo :: P.Setup
   , distTable :: DistanceTable.DistanceTable
+  , futuresTable :: DistanceTable.Futures
   , movePool :: CS.MovePool
   }
   deriving (Generic, NFData)
@@ -38,19 +39,24 @@ instance Punter.IsPunter Punter where
         Punter
         { setupInfo = s
         , distTable = DistanceTable.mkDistanceTable m
+        , futuresTable = futures
         , movePool = CS.empty (P.punters s) m (P.settings' s)
         }
-    , P.futures = Nothing
+    , P.futures =
+        if IM.null futures
+        then Nothing
+        else Just [P.Future mine site | (mine,site) <- IM.toList futures]
     }
     where
       m = P.map s
+      futures = IM.empty
 
   applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
     p1
     { movePool = CS.applyMoves moves movePool1
     }
 
-  chooseMoveSimple Punter{ setupInfo = si, distTable = tbl, movePool = pool } =
+  chooseMoveSimple Punter{ setupInfo = si, distTable = tbl, futuresTable = futures, movePool = pool } =
     if Set.null ars then
       P.MvPass punterId
     else
@@ -60,8 +66,8 @@ instance Punter.IsPunter Punter where
       punterId = P.setupPunter si
       ars = CS.unclaimedRivers pool
       siteClasses = CS.reachabilityOf pool punterId
-      rewards = [(r, DistanceTable.reward tbl siteClasses r) | r <- Set.toList ars]
+      rewards = [(r, DistanceTable.reward tbl futures siteClasses r) | r <- Set.toList ars]
 
-  logger Punter{ setupInfo = P.Setup { punter = myid}, distTable = tbl, movePool = pool } = do
-    forM_ (IM.toList $ CS.scores pool tbl) $ \(pid, s) -> do
+  logger Punter{ setupInfo = P.Setup { punter = myid}, distTable = tbl, futuresTable = futures, movePool = pool } = do
+    forM_ (IM.toList $ CS.scores pool tbl (IM.singleton myid futures)) $ \(pid, s) -> do
       writeLog $ (bool "  "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s
