@@ -22,7 +22,6 @@ import Data.List (foldl')
 import qualified Data.Aeson as J
 import GHC.Generics
 import qualified Data.IntMap.Lazy as IM
-import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Protocol as P
@@ -54,13 +53,13 @@ empty numPunters m settings =
   , pool = IM.empty
   , numOptions = IM.fromList [(p, initialNumOptions) | p <- [0..numPunters-1]]
   , pastMoves  = IM.fromList [(p, []) | p <- [0..numPunters-1]]
-  , splurges = fromMaybe False (P.splurges settings)
+  , splurges = P.splurges settings
   }
   where
     numMines = length $ P.mines m
     initialNumOptions =
       case settings of
-        P.Settings{ P.options = Just True } -> numMines
+        P.Settings{ P.options = True } -> numMines
         _ -> 0
 
 applyMoves :: [P.Move] -> MovePool -> MovePool

@@ -115,9 +115,9 @@ main = do
           exitFailure
     let settings =
           P.Settings
-          { P.futures  = Just $ optFutures opt
-          , P.splurges = Just $ optSplurges opt
-          , P.options  = Just $ optOptions opt
+          { P.futures  = optFutures opt
+          , P.splurges = optSplurges opt
+          , P.options  = optOptions opt
           }
     let opt2 = def{ Simulator.optPlayTimeout = fromIntegral <$> optTimeout opt }
   

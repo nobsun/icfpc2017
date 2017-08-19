@@ -109,22 +109,32 @@ data Map = Map
 instance ToJSON Map
 instance FromJSON Map
 
-data Settings = Settings { futures  :: Maybe Bool
-                         , splurges :: Maybe Bool
-                         , options  :: Maybe Bool
+data Settings = Settings { futures  :: Bool
+                         , splurges :: Bool
+                         , options  :: Bool
                          }
               deriving (Generic, Show, NFData)
 
 instance ToJSON Settings where
-  toJSON = genericToJSON (defaultOptions { omitNothingFields = True })
-instance FromJSON Settings
+  toJSON Settings{ futures=b1, splurges=b2, options=b3 } =
+    object $ 
+    [ "futures"  .= toJSON True | b1] ++
+    [ "splurges" .= toJSON True | b2] ++
+    [ "options"  .= toJSON True | b3]
+
+instance FromJSON Settings where
+  parseJSON = withObject "Settings" $ \obj ->
+    Settings
+    <$> (obj .:? "futures"  .!= False)
+    <*> (obj .:? "splurges" .!= False)
+    <*> (obj .:? "options"  .!= False)
 
 defaultSettings :: Settings
 defaultSettings =
     Settings
-    { futures  = Nothing
-    , splurges = Nothing
-    , options  = Nothing
+    { futures  = False
+    , splurges = False
+    , options  = False
     }
 
 type Futures = [Future]
