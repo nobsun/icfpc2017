@@ -2,7 +2,6 @@
 module Punter where
 
 import System.IO
--- import GHC.Generics (Generic)
 import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON)
 import qualified Protocol as P
@@ -38,17 +37,3 @@ writeLog = hPutStrLn stderr
 
 data SomePunter where
   SomePunter :: IsPunter p => p -> SomePunter
-
-{- --- JSON の decode 結果の可否で区別できるので必要にならなかった
-data OfflineStage
-  = Setup
-  | GamePlay Int
-  --- | Scoring
-  deriving (Eq, Ord, Show, Generic)
-
-instance ToJSON OfflineStage
-instance FromJSON OfflineStage
-
-class IsPunter a => IsOfflinePunter a where
-  offlineStage :: a -> OfflineStage
- -}
