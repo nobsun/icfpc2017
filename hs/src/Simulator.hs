@@ -239,10 +239,11 @@ data HaskellPunter p
   { hpPunterId  :: IORef P.PunterId
   , hpState     :: IORef p
   , hpMoveQueue :: IORef [P.Move]
+  , hpLogger    :: String -> IO ()
   }
 
-createHsPunter :: Punter.IsPunter p => IO (HaskellPunter p)
-createHsPunter = do
+createHsPunter :: Punter.IsPunter p => (String -> IO ()) -> IO (HaskellPunter p)
+createHsPunter logger = do
   pidRef <-  newIORef undefined
   stateRef <- newIORef undefined
   moveQueue <- newIORef []
@@ -251,6 +252,7 @@ createHsPunter = do
     { hpPunterId  = pidRef
     , hpState     = stateRef
     , hpMoveQueue = moveQueue
+    , hpLogger    = logger
     } 
 
 instance Punter.IsPunter p => IsPunterAdapter (HaskellPunter p) where
@@ -273,7 +275,7 @@ instance Punter.IsPunter p => IsPunterAdapter (HaskellPunter p) where
           }
     evaluate $ rnf prevMoves
     ret <- timeout' (fmap (round . (10^(6::Int) *)) timelim) $ measureSec $ do
-      myMove <- Punter.play prevMoves
+      myMove <- Punter.play (hpLogger p) prevMoves
       evaluate $ rnf myMove
       return myMove
     case ret of

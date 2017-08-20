@@ -28,6 +28,7 @@ data Options
   = Options
   { optName         :: String
   , optDumpMessages :: Bool
+  , optDumpStates   :: Bool
   }
   deriving (Show, Eq)
 
@@ -36,6 +37,7 @@ instance Default Options where
     Options
     { optName         = "sampou-offline"
     , optDumpMessages = False
+    , optDumpStates   = False
     }
 
 runPunterOffline :: Punter.IsPunter a => Options -> Proxy a -> IO ()
@@ -48,13 +50,15 @@ runPunterOffline' :: forall a. Punter.IsPunter a => Options -> Proxy a -> IO ()
 runPunterOffline' opt _ =
     loop
   where
+    logger = if optDumpStates opt then hPutStrLn stderr else const (return ())
+
     loop = do
       send opt (P.HandshakePunter{ P.me = T.pack (optName opt) })
       (_::P.HandshakeServer) <- recv opt "handshake"
       jsonv <- recv opt "multiplex"
       case J.fromJSON jsonv :: Result (ServerMsg a) of
         Error _err -> fail $ "unknown messsage: " ++ show jsonv
-        Success (SMPrevMoves moves) -> (send opt =<< Punter.play moves)               *> loop
+        Success (SMPrevMoves moves) -> (send opt =<< Punter.play logger moves)        *> loop
         Success (SMSetup setupInfo) -> send opt (Punter.setup setupInfo :: P.Ready a) *> loop
         Success (SMScoring _)       -> pure ()
 

@@ -21,19 +21,16 @@ class (ToJSON a, FromJSON a, NFData a) => IsPunter a where
   chooseMove :: a -> P.MyMove a
   chooseMove a = P.MyMove (chooseMoveSimple a) (Just a)
 
-  logger :: a -> IO ()
-  logger _ = return ()
+  dumpState :: (String -> IO ()) -> a -> IO ()
+  dumpState _ _ = return ()
 
-play :: IsPunter a => P.PrevMoves a -> IO (P.MyMove a)
-play (P.PrevMoves moves (Just a)) = do
+play :: IsPunter a => (String -> IO ()) -> P.PrevMoves a -> IO (P.MyMove a)
+play logger (P.PrevMoves moves (Just a)) = do
   let s = applyMoves moves a
-  logger s
+  dumpState logger s
   return $ chooseMove s
   
-play (P.PrevMoves _moves Nothing) = return $ error "Punter.play: no state is available"
-
-writeLog :: String -> IO ()
-writeLog = hPutStrLn stderr
+play _ (P.PrevMoves _moves Nothing) = return $ error "Punter.play: no state is available"
 
 data SomePunter where
   SomePunter :: IsPunter p => p -> SomePunter

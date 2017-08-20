@@ -30,6 +30,7 @@ data Options
   , optHostName    :: String
   , optServiceName :: String
   , optDumpMessages :: Bool
+  , optDumpStates   :: Bool
   }
   deriving (Show, Eq)
 
@@ -40,6 +41,7 @@ instance Default Options where
     , optHostName    = "punter.inf.ed.ac.uk"
     , optServiceName = ""
     , optDumpMessages = False
+    , optDumpStates   = False
     }
 
 runPunterOnline :: Punter.IsPunter a => Options -> Proxy a -> IO ()
@@ -55,6 +57,8 @@ runPunterOnline opt punter = do
 
 runPunterOnline' :: forall a. Punter.IsPunter a => Options -> Proxy a -> Handle -> IO ()
 runPunterOnline' opt _ h = do
+  let logger = if optDumpStates opt then hPutStrLn stderr else const (return ())
+
   send opt h $ P.HandshakePunter{ P.me = T.pack (optName opt) }
   (_::P.HandshakeServer) <- recv opt h
   setupInfo <- recv opt h
@@ -66,7 +70,7 @@ runPunterOnline' opt _ h = do
         (v :: J.Value) <- recv opt h
         case J.fromJSON v of
           J.Success (moves :: P.PrevMoves a) -> do
-            move <- Punter.play $ moves{ P.state = Just s' }
+            move <- Punter.play logger moves{ P.state = Just s' }
             send opt h $ (move { P.state = Nothing } :: P.MyMove a)
 --            send otp h $ (move :: P.MyMove a)  -- with state
             loop $ fromJust $ P.state (move :: P.MyMove a)

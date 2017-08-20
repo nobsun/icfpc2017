@@ -14,6 +14,7 @@ data Options = Options
   , optHost :: Maybe String
   , optPort :: Maybe String
   , optDumpMessages :: Bool
+  , optDumpStates   :: Bool
   } deriving (Eq, Show)
 
 optionsParser :: Parser Options
@@ -23,6 +24,7 @@ optionsParser = Options
   <*> hostOption
   <*> portOption
   <*> dumpMessagesOption
+  <*> dumpStatesOption
   where
     punterOption :: Parser String
     punterOption = strOption
@@ -54,6 +56,11 @@ optionsParser = Options
       $  long "dump-messages"
       <> help ("dump JSON messages")
 
+    dumpStatesOption :: Parser Bool
+    dumpStatesOption = switch
+      $  long "dump-states"
+      <> help ("dump punter states")
+
 parserInfo :: ParserInfo Options
 parserInfo = info (helper <*> optionsParser)
   $  fullDesc
@@ -71,6 +78,7 @@ main = do
                    , OnlinePlay.optHostName    = fromMaybe (OnlinePlay.optHostName def) (optHost opt)
                    , OnlinePlay.optServiceName = s
                    , OnlinePlay.optDumpMessages = optDumpMessages opt
+                   , OnlinePlay.optDumpStates   = optDumpStates opt
                    }
              OnlinePlay.runPunterOnline opt2 punter
            Nothing -> do
@@ -78,6 +86,7 @@ main = do
                    def
                    { OfflinePlay.optName = fromMaybe (OfflinePlay.optName def) (optHandshakeName opt)
                    , OfflinePlay.optDumpMessages = optDumpMessages opt
+                   , OfflinePlay.optDumpStates   = optDumpStates opt
                    }
              OfflinePlay.runPunterOffline opt2 punter
   case m of

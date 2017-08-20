@@ -134,6 +134,6 @@ instance Punter.IsPunter Punter where
               Just (_, Just (s', r)) -> r : loop s'
               Nothing -> undefined
 
-  logger Punter{ setupInfo = P.Setup { punter = myid}, distTable = tbl, futuresTable = futures, movePool = pool } = do
+  dumpState writeLog Punter{ setupInfo = P.Setup { punter = myid}, distTable = tbl, futuresTable = futures, movePool = pool } = do
     forM_ (IM.toList $ CS.scores pool tbl (IM.singleton myid futures)) $ \(pid, s) -> do
       writeLog $ (bool "  "  "> " $ pid == myid) ++ "punter: " ++ show pid ++ " score: " ++ show s

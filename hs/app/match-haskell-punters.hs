@@ -22,6 +22,7 @@ data Options = Options
   , optSplurges :: Bool
   , optOptions  :: Bool
   , optTimeout  :: Maybe Int
+  , optDumpStates :: Bool
   , optPunters  :: [String]
   } deriving (Eq, Show)
 
@@ -32,6 +33,7 @@ optionsParser = Options
   <*> splurgesOption
   <*> optionsOption
   <*> timeoutOption
+  <*> dumpStatesOption
   <*> punters
   where
     mapOption :: Parser String
@@ -61,6 +63,11 @@ optionsParser = Options
       <> metavar "N"
       <> help "time limit in each move (seconds)"
 
+    dumpStatesOption :: Parser Bool
+    dumpStatesOption = switch
+      $  long "dump-states"
+      <> help ("dump punter states")
+
     punters :: Parser [String]
     punters = some $ strArgument
       $  help ("punter names {" ++ intercalate "|" Punters.names ++ "}")
@@ -89,9 +96,11 @@ main = do
         , P.options  = optOptions opt
         }
 
+  let logger = if optDumpStates opt then putStrLn else const (return ())
+
   punters <- forM (optPunters opt) $ \name -> do
     let m = Punters.withPunter name $ \(Proxy :: Proxy p) -> do
-              (p :: Simulator.HaskellPunter p) <- Simulator.createHsPunter
+              (p :: Simulator.HaskellPunter p) <- Simulator.createHsPunter logger
               return $ Simulator.SomePunter p
     case m of
       Nothing -> error $ "unknown punter name: " ++ name
