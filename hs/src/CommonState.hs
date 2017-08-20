@@ -50,7 +50,7 @@ empty numPunters m settings =
   MovePool
   { unclaimedRivers = Set.fromList $ map toNRiver $ P.rivers m
   , optionableRivers = Set.empty
-  , pool = IM.empty
+  , pool = IM.fromList [(p, emptyEntry) | p <- [0..numPunters-1]]
   , numOptions = IM.fromList [(p, initialNumOptions) | p <- [0..numPunters-1]]
   , pastMoves  = IM.fromList [(p, []) | p <- [0..numPunters-1]]
   , splurges = P.splurges settings

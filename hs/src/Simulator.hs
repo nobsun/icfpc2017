@@ -52,7 +52,7 @@ import qualified Punter as Punter
 import qualified CommonState as CommonState
 import qualified DistanceTable as DistanceTable
 
-type S = (CommonState.MovePool, IntMap P.Move)
+type S = CommonState.MovePool
 
 data Options
   = Options
@@ -74,6 +74,10 @@ simulate opt map' settings punters' = do
       distTable = DistanceTable.mkDistanceTable map'
 
   putStrLn "setup"
+  putStrLn $ "  #punter=" ++ show numPunters
+  putStrLn $ "  #sites=" ++ show (length (P.sites map'))
+  putStrLn $ "  #rivers=" ++ show (length (P.rivers map'))
+  putStrLn $ "  #mines=" ++ show (length (P.mines map'))
   (futures :: IntMap DistanceTable.Futures) <- liftM IntMap.fromList $ forM (IntMap.toList punters) $ \(pid, punter) -> do
     let setupArg =
           P.Setup
@@ -86,13 +90,10 @@ simulate opt map' settings punters' = do
     return (pid, IntMap.fromList [(mine, site) | P.Future mine site <- futures])
 
   let x0 :: S
-      x0 =
-        ( CommonState.empty numPunters map' settings
-        , IntMap.mapWithKey (\pid _ -> P.MvPass pid) punters
-        )
+      x0 = CommonState.empty numPunters map' settings
 
       step :: S -> Int -> IO S
-      step (state, prev) pid = do
+      step state pid = do
         ret <- tryIOError $ play (punters IntMap.! pid) (optPlayTimeout opt)
         case ret of
           Right (Just (m, tm)) -> do
@@ -101,10 +102,7 @@ simulate opt map' settings punters' = do
               "  punter " <> LBS8.pack (show pid) <> ": " <>
               "move=" <> J.encode m <> ", " <>
               "time=" <> LBS8.pack (printf "%0.3f" tm) <> "sec"
-            return $
-              ( CommonState.applyMove m state
-              , IntMap.insert pid m prev
-              )
+            return $ CommonState.applyMove m state
           Right Nothing -> do
             let m = P.MvPass pid
             forM_ (IntMap.elems punters) $ \p -> addMove p m
@@ -112,10 +110,7 @@ simulate opt map' settings punters' = do
               "  punter " <> LBS8.pack (show pid) <> ": " <>
               "move=" <> J.encode m <> ", " <>
               "timeout"
-            return $
-              ( CommonState.applyMove m state
-              , IntMap.insert pid m prev
-              )
+            return $ CommonState.applyMove m state
           Left err -> do
             let m = P.MvPass pid
             forM_ (IntMap.elems punters) $ \p -> addMove p m
@@ -123,27 +118,17 @@ simulate opt map' settings punters' = do
               "  punter " <> LBS8.pack (show pid) <> ": " <>
               "move=" <> J.encode m <> ", " <>
               "error=" <> LBS8.pack (show err)
-            return $
-              ( CommonState.applyMove m state
-              , IntMap.insert pid m prev
-              )
+            return $ CommonState.applyMove m state
 
       totalSteps :: Int
       totalSteps = length (P.rivers map')
 
       dump :: Int -> S -> IO ()
-      dump n (state, prev) = do
-        let prevMoves :: P.PrevMoves ()
-            prevMoves =
-              P.PrevMoves
-              { P.move = P.Moves (IntMap.elems prev)
-              , P.state = Nothing
-              }
-        putStrLn $ "turn " ++ show n
-        LBS8.putStrLn $ "<- " <> J.encode prevMoves
-        forM_ [0..numPunters-1] $ \pid -> do
-          let m = CommonState.scoreOf state distTable futures pid
-          putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show m
+      dump n state = do
+        putStrLn $ "turn " ++ show (n `div` numPunters)
+        let scores = CommonState.scores state distTable futures
+        forM_ (IntMap.toList scores) $ \(pid, score) -> do
+          putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show score
 
       loop :: Int -> S -> IO S
       loop n x
@@ -153,32 +138,16 @@ simulate opt map' settings punters' = do
             loop (n + numPunters) x'
         | otherwise = do
             dump n x
-            (state, prev) <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
-            let stopMsg :: P.Stop
-                stopMsg =
-                  P.Stop
-                  { P.moves  = [if pid < totalSteps - n then prev IntMap.! pid else P.MvPass pid | pid <- [0..numPunters-1]]
-                  , P.scores = [P.Score pid (fromIntegral $ CommonState.scoreOf state distTable futures pid) | pid <- [0..numPunters-1]]
-                  }
-            putStrLn "stop"
-            LBS8.putStrLn $ "<- " <> J.encode stopMsg
-            return
-              ( state
-              , prev `IntMap.union` IntMap.fromList [(pid, P.MvPass pid) | pid <- [0..numPunters-1], pid >= totalSteps - n]
-              )
+            state <- foldM step x $ take (totalSteps - n) [0..numPunters-1]
+            return state
 
-  (state, prev) <- loop 0 x0
+  state <- loop 0 x0
 
-  let scores = IntMap.fromList [(pid, CommonState.scoreOf state distTable futures pid) | pid <- [0..numPunters-1]]
+  let scores = CommonState.scores state distTable futures
 
-      stopMsg :: P.Stop
-      stopMsg =
-        P.Stop
-        { P.moves  = (IntMap.elems prev)
-        , P.scores = [P.Score pid (fromIntegral s) | (pid,s) <- IntMap.toList scores]
-        }
   putStrLn "stop"
-  LBS8.putStrLn $ "<- " <> J.encode stopMsg
+  forM_ (IntMap.toList scores) $ \(pid, score) -> do
+    putStrLn $ "  punter " ++ show pid ++ ": score=" ++ show score
 
   forM_ [0..numPunters-1] $ \pid -> do
     stop (punters IntMap.! pid) scores
