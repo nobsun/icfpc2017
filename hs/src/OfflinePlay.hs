@@ -4,6 +4,7 @@
 module OfflinePlay where
 
 import Control.Applicative
+import Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Char (isDigit)
 import Data.Aeson (Result (Success, Error))
@@ -25,34 +26,36 @@ test = runPunterOffline def (Proxy :: Proxy PassPunter.Punter)
 
 data Options
   = Options
-  { optName        :: String
+  { optName         :: String
+  , optDumpMessages :: Bool
   }
   deriving (Show, Eq)
 
 instance Default Options where
   def =
     Options
-    { optName        = "sampou-offline"
+    { optName         = "sampou-offline"
+    , optDumpMessages = False
     }
 
 runPunterOffline :: Punter.IsPunter a => Options -> Proxy a -> IO ()
 runPunterOffline opt punter = do
       hSetBuffering stdin (BlockBuffering Nothing)
       hSetBuffering stdout (BlockBuffering Nothing)
-      runPunterOffline' (T.pack (optName opt)) punter
+      runPunterOffline' opt punter
 
-runPunterOffline' :: forall a. Punter.IsPunter a => T.Text -> Proxy a -> IO ()
-runPunterOffline' name _ =
+runPunterOffline' :: forall a. Punter.IsPunter a => Options -> Proxy a -> IO ()
+runPunterOffline' opt _ =
     loop
   where
     loop = do
-      send (P.HandshakePunter{ P.me=name })
-      (_::P.HandshakeServer) <- recv "handshake"
-      jsonv <- recv "multiplex"
+      send opt (P.HandshakePunter{ P.me = T.pack (optName opt) })
+      (_::P.HandshakeServer) <- recv opt "handshake"
+      jsonv <- recv opt "multiplex"
       case J.fromJSON jsonv :: Result (ServerMsg a) of
         Error _err -> fail $ "unknown messsage: " ++ show jsonv
-        Success (SMPrevMoves moves) -> (send =<< Punter.play moves)               *> loop
-        Success (SMSetup setupInfo) -> send (Punter.setup setupInfo :: P.Ready a) *> loop
+        Success (SMPrevMoves moves) -> (send opt =<< Punter.play moves)               *> loop
+        Success (SMSetup setupInfo) -> send opt (Punter.setup setupInfo :: P.Ready a) *> loop
         Success (SMScoring _)       -> pure ()
 
 data ServerMsg a
@@ -72,24 +75,27 @@ instance J.ToJSON a => J.ToJSON (ServerMsg a) where
   toJSON (SMPrevMoves x) = J.toJSON x
   toJSON (SMScoring x) = J.toJSON x
 
-send :: J.ToJSON a => a -> IO ()
-send x = do
+send :: J.ToJSON a => Options -> a -> IO ()
+send opt x = do
   let json = J.encode x
-  L8.hPutStrLn stderr ("-> " <> json)
-  hFlush stderr
+  when (optDumpMessages opt) $ do
+    L8.hPutStrLn stderr ("-> " <> json)
+    hFlush stderr
   L8.hPutStr stdout $ L8.pack (show (L8.length json)) <> ":" <> json
   hFlush stdout
 
 processTimeoutSecond :: Int
 processTimeoutSecond = 180
 
-recv :: J.FromJSON a => String -> IO a
-recv name = do
+recv :: J.FromJSON a => Options -> String -> IO a
+recv opt name = do
   s  <- (maybe (hPutStrLn stderr "OfflinePlay: Timeout of waiting input. exiting." *> exitSuccess) return =<<) .
         timeout (processTimeoutSecond * 1000 * 1000) $ do
     len <- getLength []
     L8.hGet stdin len
-  L8.hPutStrLn stderr $ "<- " <> s
+  when (optDumpMessages opt) $ do
+    L8.hPutStrLn stderr $ "<- " <> s
+    hFlush stderr
   maybe
     (fail $ "failed to parse: " ++ name ++ ": " ++ show s)
     return
