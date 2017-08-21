@@ -8,6 +8,8 @@ module CommonState
   , empty
   , applyMove
   , applyMoves
+  , applyMoves2
+  , filterMoves
   , riversOf
   , reachabilityOf
   , scoreOf
@@ -18,7 +20,7 @@ module CommonState
 
 import Control.DeepSeq
 import Control.Monad
-import Data.List (foldl')
+import Data.List
 import qualified Data.Aeson as J
 import GHC.Generics
 import qualified Data.IntMap.Lazy as IM
@@ -64,6 +66,11 @@ empty numPunters m settings =
 
 applyMoves :: [P.Move] -> MovePool -> MovePool
 applyMoves moves pl = foldl' (flip applyMove) pl moves
+
+-- 最初にPrevMovesを受け取るときには、まだ指していないPunterの手に対してPassが入ってしまっているので、それを取り除く
+-- TODO: 良い名前
+applyMoves2 :: P.PunterId -> [P.Move] -> MovePool -> MovePool
+applyMoves2 pid moves pl = applyMoves (filterMoves pid pl moves) pl
 
 applyMove :: P.Move -> MovePool -> MovePool
 applyMove move pl =
@@ -115,6 +122,18 @@ applyMoveChecked move@(P.MvSplurge p ss) orig@MovePool{ unclaimedRivers = urs, o
     , numOptions = IM.insert p (n - Set.size optionRivers) nOpts
     , pastMoves = IM.adjust (move :) p (pastMoves orig)
     }
+
+-- 最初にPrevMovesを受け取るときには、まだ指していないPunterの手に対してPassが入ってしまっているので、それを取り除く
+-- 最初のターンにタイムアウトしてしまって、次のターンにまとめてくるときにも余計なパスは入るのだろうか? (要確認)
+filterMoves :: P.PunterId -> MovePool -> [P.Move] -> [P.Move]
+filterMoves pid pl xs
+  | isFirstTurn = xs Data.List.\\ [P.MvPass pid' | pid' <- [pid..numPunters-1]] -- 1個ずつ取り除く
+  | otherwise   = xs
+  where
+    numPunters = fst $ IM.findMax (pool pl)
+    isFirstTurn =
+      all (Set.null . fst) (IM.elems (pool pl)) &&
+      and [P.MvPass pid' `elem` xs | pid' <- [pid..numPunters-1]]
 
 pass :: P.PunterId -> MovePool -> MovePool
 pass p orig = orig{ pastMoves = IM.adjust (P.MvPass p :) p (pastMoves orig) }

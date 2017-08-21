@@ -37,9 +37,9 @@ instance Punter.IsPunter Punter where
     , P.futures = Nothing
     }
 
-  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, movePool = movePool1 } =
     p1
-    { movePool = CS.applyMoves moves movePool1
+    { movePool = CS.applyMoves2 (P.setupPunter si) moves movePool1
     }
 
   chooseMoveSimple Punter{ setupInfo = si, movePool = pool } =

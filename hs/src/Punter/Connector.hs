@@ -57,9 +57,9 @@ instance Punter.IsPunter Punter where
       m = P.map s
       futures = IM.empty
 
-  applyMoves (P.Moves moves) p1@Punter{ movePool = movePool1 } =
+  applyMoves (P.Moves moves) p1@Punter{ setupInfo = si, movePool = movePool1 } =
     p1
-    { movePool = CS.applyMoves moves movePool1
+    { movePool = CS.applyMoves2 (P.setupPunter si) moves movePool1
     }
 
   chooseMoveSimple Punter{ setupInfo = si, distTable = tbl, futuresTable = futures, movePool = pool }

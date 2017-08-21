@@ -181,7 +181,7 @@ data Move
     , source :: SiteId
     , target :: SiteId
     }
-  deriving (Generic, Show, NFData)
+  deriving (Generic, Show, Eq, NFData)
 
 moveOptions :: Options
 moveOptions =
