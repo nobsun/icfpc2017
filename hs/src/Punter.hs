@@ -1,7 +1,6 @@
 {-# LANGUAGE GADTs #-}
 module Punter where
 
-import System.IO
 import Control.DeepSeq
 import Data.Aeson (ToJSON, FromJSON)
 import qualified Protocol as P
