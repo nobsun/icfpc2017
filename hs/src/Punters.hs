@@ -1,6 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 module Punters where
 
+import Control.Monad
 import Data.Proxy
 import Punter
 import qualified Punter.Pass as PassPunter
@@ -39,3 +40,9 @@ withPunter name k =
     "connector" -> Just $ k (Proxy :: Proxy Connector.Punter)
     "mixed" -> Just $ k (Proxy :: Proxy Mixed.Punter)
     _ -> Nothing
+
+withPunterM :: MonadPlus f => String -> (forall a. Punter.IsPunter a => Proxy a -> f b) -> f b
+withPunterM name k =
+  case withPunter name k of
+    Nothing -> fail ("unknown punter: " ++ name)
+    Just m -> m

@@ -99,12 +99,9 @@ main = do
   let logger = if optDumpStates opt then putStrLn else const (return ())
 
   punters <- forM (optPunters opt) $ \name -> do
-    let m = Punters.withPunter name $ \(Proxy :: Proxy p) -> do
-              (p :: Simulator.HaskellPunter p) <- Simulator.createHsPunter logger
-              return $ Simulator.SomePunter p
-    case m of
-      Nothing -> error $ "unknown punter name: " ++ name
-      Just act -> act
+    Punters.withPunterM name $ \(Proxy :: Proxy p) -> do
+      (p :: Simulator.HaskellPunter p) <- Simulator.createHsPunter logger
+      return $ Simulator.SomePunter p
 
   let opt2 = def{ Simulator.optPlayTimeout = fromIntegral <$> optTimeout opt }
   Simulator.simulate opt2 map' settings punters

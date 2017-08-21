@@ -69,26 +69,23 @@ parserInfo = info (helper <*> optionsParser)
 main :: IO ()
 main = do
   opt <- execParser parserInfo
-  let m = Punters.withPunter (optPunterName opt) $ \punter -> do
-         case optPort opt of
-           Just s -> do
-             let opt2 =
-                   def
-                   { OnlinePlay.optName        = fromMaybe (OnlinePlay.optName def) (optHandshakeName opt)
-                   , OnlinePlay.optHostName    = fromMaybe (OnlinePlay.optHostName def) (optHost opt)
-                   , OnlinePlay.optServiceName = s
-                   , OnlinePlay.optDumpMessages = optDumpMessages opt
-                   , OnlinePlay.optDumpStates   = optDumpStates opt
-                   }
-             OnlinePlay.runPunterOnline opt2 punter
-           Nothing -> do
-             let opt2 =
-                   def
-                   { OfflinePlay.optName = fromMaybe (OfflinePlay.optName def) (optHandshakeName opt)
-                   , OfflinePlay.optDumpMessages = optDumpMessages opt
-                   , OfflinePlay.optDumpStates   = optDumpStates opt
-                   }
-             OfflinePlay.runPunterOffline opt2 punter
-  case m of
-    Just act -> act
-    Nothing -> error "unknown punter algorithm"
+  Punters.withPunterM (optPunterName opt) $ \punter -> do
+    case optPort opt of
+      Just s -> do
+        let opt2 =
+              def
+              { OnlinePlay.optName        = fromMaybe (OnlinePlay.optName def) (optHandshakeName opt)
+              , OnlinePlay.optHostName    = fromMaybe (OnlinePlay.optHostName def) (optHost opt)
+              , OnlinePlay.optServiceName = s
+              , OnlinePlay.optDumpMessages = optDumpMessages opt
+              , OnlinePlay.optDumpStates   = optDumpStates opt
+              }
+        OnlinePlay.runPunterOnline opt2 punter
+      Nothing -> do
+        let opt2 =
+              def
+              { OfflinePlay.optName = fromMaybe (OfflinePlay.optName def) (optHandshakeName opt)
+              , OfflinePlay.optDumpMessages = optDumpMessages opt
+              , OfflinePlay.optDumpStates   = optDumpStates opt
+              }
+        OfflinePlay.runPunterOffline opt2 punter
