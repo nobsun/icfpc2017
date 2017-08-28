@@ -16,6 +16,7 @@ module CommonState
   , scores
   , unclaimedRivers
   , optionableRivers
+  , optionsOf
   ) where
 
 import Control.DeepSeq
@@ -156,3 +157,6 @@ scoreOf MovePool{ pool = pl } tbl futures pid = DistanceTable.computeScore tbl (
 
 scores :: MovePool -> DistanceTable.DistanceTable -> IM.IntMap DistanceTable.Futures -> IM.IntMap DistanceTable.Score
 scores MovePool{ pool = pl } tbl futures = IM.mapWithKey (\pid (_, equiv) -> DistanceTable.computeScore tbl (IM.findWithDefault IM.empty pid futures) equiv) pl
+
+optionsOf :: MovePool -> P.PunterId -> Int
+optionsOf MovePool{ numOptions = numOpts } p = numOpts IM.! p
