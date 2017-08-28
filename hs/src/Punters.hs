@@ -13,6 +13,7 @@ import qualified Punter.STF as STF
 import qualified Punter.Longest as Longest
 import qualified Punter.Connector as Connector
 import qualified Punter.MixedStrategy as Mixed
+import qualified Punter.Random as Random
 
 names :: [String]
 names =
@@ -25,6 +26,7 @@ names =
   , "longest"
   , "connector"
   , "mixed"
+  , "random"
   ]
 
 withPunter :: String -> (forall a. Punter.IsPunter a => Proxy a -> b) -> Maybe b
@@ -39,6 +41,7 @@ withPunter name k =
     "longest" -> Just $ k (Proxy :: Proxy Longest.Punter)
     "connector" -> Just $ k (Proxy :: Proxy Connector.Punter)
     "mixed" -> Just $ k (Proxy :: Proxy Mixed.Punter)
+    "random" -> Just $ k (Proxy :: Proxy Random.Punter)
     _ -> Nothing
 
 withPunterM :: MonadPlus f => String -> (forall a. Punter.IsPunter a => Proxy a -> f b) -> f b

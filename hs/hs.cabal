@@ -34,6 +34,7 @@ library
                      , Punter.Longest
                      , Punter.Connector
                      , Punter.MixedStrategy
+                     , Punter.Random
                      , Punters
                      , Simulator
                      , Strategy.Score
@@ -57,6 +58,7 @@ library
                      , heaps
                      , network
                      , process
+                     , random
                      , text >= 1.2.2.1
                      , unordered-containers
   default-language:    Haskell2010
