@@ -15,4 +15,8 @@ This is Team Sampou's repository for [ICFP Programming Contest 2017](https://icf
 ## Submissions
 
 * Submission for full contest: https://drive.google.com/file/d/0Bz1p7909-K4SZU9WeldDNDlpR0E/view
+  * [1st round](https://icfpcontest2017.github.io/post/full-one/): it ranked 17th place among 120 teams
+  * [2nd round](https://icfpcontest2017.github.io/post/full-two/): it ranked 6th place among 60 teams
 * Submission for lightning contest: https://drive.google.com/file/d/0B4wsh1Q6DSezc19oT1doNVp4X3M/view
+  * [lightning round 1 (take two)](https://icfpcontest2017.github.io/post/lightning-two/): 17th place among 52 teams
+  * [lightning round 2](https://icfpcontest2017.github.io/post/lightning-two/): 7th place among 13 teams
